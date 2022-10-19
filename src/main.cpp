@@ -91,7 +91,7 @@ bool initialize_eeprom()
     settings.servo_open_position = DEFAULT_SERVO_OPEN_POSITION;
     
     char default_name[MAX_NAME_LENGTH];
-    sprintf(default_name, "%s%6X", DEFAULT_BOX_NAME_PREFIX, get_agnostic_chip_id());
+    sprintf(default_name, "%s%06X", DEFAULT_BOX_NAME_PREFIX, get_agnostic_chip_id());
 
     strcpy(settings.name, default_name);
     EEPROM.put(EEPROM_SETTINGS_ADDR, settings);
