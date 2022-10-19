@@ -1,23 +1,23 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <EEPROM.h>
+#include <WiFiClient.h>
+#include "config.h"
+
+#if defined(ESP8266)
 #include <ESP8266WiFi.h>
 #include <Servo.h>
-#include <WiFiClient.h>
 #include "ESP8266mDNS.h"
+#elif defined(ESP32)
+#include <ESP32Servo.h>
+#include "ESPmDNS.h"
+#endif
 
 // Due to improper compatibility these 3 must happen in this order:
 #include <WiFiManager.h>
 #define WEBSERVER_H
 #include <ESPAsyncWebServer.h>
 
-#define FIRMWARE_VERSION "20220823"
-
-#define PINSERVO D4
-#define MAX_PASSWORD_LENGTH 64
-#define MAX_NAME_LENGTH 32
-#define TCP_PORT 5000
-#define INITSTRING "EKI_LOCKBOX"
 #define EEPROM_STATE_ADDR 128
 #define EEPROM_PASSWORD_ADDR EEPROM_STATE_ADDR + sizeof(EEPROMStateObject)
 #define EEPROM_SETTINGS_ADDR EEPROM_PASSWORD_ADDR + sizeof(EEPROMPasswordObject)
@@ -49,6 +49,21 @@ WiFiManager wifiManager;
 WiFiClient client;
 AsyncWebServer server(TCP_PORT);
 
+uint32_t get_agnostic_chip_id()
+{
+    #if defined(ARDUINO_ARCH_ESP8266)
+    return ESP.getChipId();
+    #elif defined(ESP32)
+    uint32_t id = 0;
+    for(int i=0; i<17; i=i+8) {
+    id |= ((ESP.getEfuseMac() >> (40 - i)) & 0xff) << i;
+    }
+    return id;
+    #else
+    return 0;
+    #endif
+}
+
 // EEPROM related functions
 
 bool verify_eeprom_state_validity()
@@ -76,7 +91,7 @@ bool initialize_eeprom()
     settings.servo_open_position = DEFAULT_SERVO_OPEN_POSITION;
     
     char default_name[MAX_NAME_LENGTH];
-    sprintf(default_name, "%s%6X", DEFAULT_BOX_NAME_PREFIX, ESP.getChipId());
+    sprintf(default_name, "%s%6X", DEFAULT_BOX_NAME_PREFIX, get_agnostic_chip_id());
 
     strcpy(settings.name, default_name);
     EEPROM.put(EEPROM_SETTINGS_ADDR, settings);

@@ -1,0 +1,15 @@
+
+#define FIRMWARE_VERSION "20220823"
+
+#define MAX_PASSWORD_LENGTH 64
+#define MAX_NAME_LENGTH 32
+
+#define TCP_PORT 5000
+
+#define INITSTRING "EKI_LOCKBOX"
+
+#if defined(ARDUINO_ARCH_ESP8266)
+#define PINSERVO D4
+#elif defined(ESP32)
+#define PINSERVO 13
+#endif
