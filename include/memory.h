@@ -18,6 +18,6 @@ public:
     int GetClosedPosition();
 
     bool SetVaultLocked(const char *new_password);
-    bool SetVaultUnlocked(char *password);
+    bool SetVaultUnlocked(const char *password);
     bool GetVaultIsLocked();
 };

@@ -69,6 +69,7 @@ bool Memory::SetName(const char *name)
     EEPROMState state;
     EEPROM.get(0, state);
     strcpy(state.name, name);
+    EEPROM.put(0, state);
     return EEPROM.commit();
 }
 
@@ -85,6 +86,7 @@ bool Memory::SetOpenPosition(int position)
     EEPROMState state;
     EEPROM.get(0, state);
     state.servo_open_position = position;
+    EEPROM.put(0, state);
     return EEPROM.commit();
 }
 bool Memory::SetClosedPosition(int position)
@@ -92,6 +94,7 @@ bool Memory::SetClosedPosition(int position)
     EEPROMState state;
     EEPROM.get(0, state);
     state.servo_closed_position = position;
+    EEPROM.put(0, state);
     return EEPROM.commit();
 }
 
@@ -123,16 +126,18 @@ bool Memory::SetVaultLocked(const char *new_password)
     }
     strcpy(state.vault_password, new_password);
     state.vault_locked = true;
+    EEPROM.put(0, state);
     return EEPROM.commit();
 }
 
-bool Memory::SetVaultUnlocked(char *password)
+bool Memory::SetVaultUnlocked(const char *password)
 {
     EEPROMState state;
     EEPROM.get(0, state);
     if (strcmp(state.vault_password, password) == 0)
     {
         state.vault_locked = false;
+        EEPROM.put(0, state);
         return EEPROM.commit();
     }
     else
@@ -147,66 +152,3 @@ bool Memory::GetVaultIsLocked()
     EEPROM.get(0, state);
     return state.vault_locked;
 }
-
-/*
-
-bool set_software_locked(bool lock)
-{
-    EEPROMStateObject state;
-    EEPROM.get(EEPROM_STATE_ADDR, state);
-    state.locked = lock;
-    EEPROM.put(EEPROM_STATE_ADDR, state);
-    if (EEPROM.commit())
-    {
-        Serial.println("set lock status eeprom committed");
-        return true;
-    }
-    else
-    {
-        Serial.println("set lock status eeprom commit failed!");
-        return false;
-    }
-}
-
-bool get_password(char *buf)
-{
-    EEPROMPasswordObject password_object;
-    EEPROM.get(EEPROM_PASSWORD_ADDR, password_object);
-    strcpy(buf, password_object.password);
-    return true;
-}
-
-bool set_password(const char *newPassword)
-{
-    EEPROMPasswordObject password_object;
-    EEPROM.get(EEPROM_PASSWORD_ADDR, password_object);
-    strcpy(password_object.password, newPassword);
-    EEPROM.put(EEPROM_PASSWORD_ADDR, password_object);
-    if (EEPROM.commit())
-    {
-        Serial.println("password eeprom committed");
-        return true;
-    }
-    else
-    {
-        Serial.println("password eeprom commit failed!");
-        return false;
-    }
-}
-
-bool get_is_locked()
-{
-    EEPROMStateObject state;
-    state.locked = false;
-    EEPROM.get(EEPROM_STATE_ADDR, state);
-    if (state.locked)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-*/
