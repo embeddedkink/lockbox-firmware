@@ -5,10 +5,10 @@
 
 
 <script>
-    window.onload = init;
+    window.onload = Init;
 
 
-    function init() {
+    function Init() {
         var lockform = document.getElementById('lockform');
         function onLockSubmit(event) {
             if (event) { event.preventDefault(); }
@@ -16,7 +16,6 @@
         }
         lockform.addEventListener('submit', onLockSubmit, false);
         lockform.submit = onLockSubmit;
-        
 
         var unlockform = document.getElementById('unlockform');
         function onUnlockSubmit(event) {
@@ -25,6 +24,16 @@
         }
         unlockform.addEventListener('submit', onUnlockSubmit, false);
         unlockform.submit = onUnlockSubmit;
+        
+        var settingsform = document.getElementById('settingsform');
+        function onSettingsSubmit(event) {
+            if (event) { event.preventDefault(); }
+            Post(settingsform, "/settings")
+        }
+        settingsform.addEventListener('submit', onSettingsSubmit, false);
+        settingsform.submit = onSettingsSubmit;
+
+        UpdateBoxInfo();
     }
 
     function Post(form, endpoint) {
@@ -33,30 +42,94 @@
         xhr.open("POST", "%API_HOST%".concat(endpoint));
         xhr.onload = function () { console.log(this.response); };
         xhr.send(data);
-        return false;
+        UpdateBoxInfo();
+    }
+
+    function DownloadKey() {
+        var key = document.getElementById("lockformPassword").value;
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(key));
+        element.setAttribute('download', "key.txt");
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    }
+
+    function GenerateKey(size) {
+        var result           = '';
+        var characters       = 'abcdefghkmnpqrstuvwxyz23456789';
+        var charactersLength = characters.length;
+        for ( var i = 0; i < size; i++ ) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        document.getElementById("lockformPassword").value = result;
+    }
+
+    function UpdateBoxInfo()
+    {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "%API_HOST%".concat("/settings"));
+        xhr.onload = function () { 
+            var response = JSON.parse(this.response)
+            document.getElementById("settingsformName").value = response["data"]["name"];
+            document.getElementById("settingsformOpenPosition").value = response["data"]["servo_open_position"];
+            document.getElementById("settingsformClosedPosition").value = response["data"]["servo_closed_position"];
+            if (response["data"]["locked"])
+            {
+                document.getElementById("lockIndicator").innerHTML = "&#128274";
+            }
+            else
+            {
+                document.getElementById("lockIndicator").innerHTML = "&#128275";
+            }
+        };
+        xhr.send();
     }
 </script>
 
 <body>
     <main>
-        <h1>EKI Lockbox</h1>
+        <h1>EKI Lockbox <b id="lockIndicator"></b></h1>
+        
+        <fieldset>
+            <legend>Box</legend>
+            <form id="settingsform">
+                <label for="settingsformName">Name</label>
+                <input id="settingsformName" type="text" name="name" autocomplete="off" />
+                <label for="settingsformOpenPosition">Open</label>
+                <input id="settingsformOpenPosition" type="number" name="servo_open_position" autocomplete="off" />
+                <label for="settingsformClosedPosition">Closed</label>
+                <input id="settingsformClosedPosition" type="number" name="servo_closed_position" autocomplete="off" />
+                <br>
+                <button type="submit">Set</button>
+            </form>
+        </fieldset>
         <fieldset>
             <legend>Vault mode</legend>
             <p>
+                <button onclick="GenerateKey(12)">Generate</button>
+                <button onclick="DownloadKey()">Download</button>
             <form id="lockform">
-                <input type="text" name="password" required autocomplete="off" />
+                <input id="lockformPassword" type="text" name="password" required autocomplete="off" />
                 <button type="submit">Lock</button>
-                </p>
             </form>
+            </p>
             <p>
             <form id="unlockform">
-                <input type="text" name="password" required autocomplete="off" />
+                <input id="unlockformPassword" type="text" name="password" required autocomplete="off" />
                 <button type="submit">Unlock</button>
                 </p>
             </form>
         </fieldset>
 
-        <fieldset id="">
+        <fieldset>
+            <legend>Emlalock</legend>
+            wip
+        </fieldset>
+        <fieldset>
+            <legend>Adventure mode</legend>
+            wip
         </fieldset>
     </main>
     <footer>

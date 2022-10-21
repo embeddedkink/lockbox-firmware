@@ -108,8 +108,8 @@ void ActionSettingsGet(AsyncWebServerRequest *request)
     response->setCode(200);
     doc["result"] = "succes";
     doc["data"]["locked"] = memory->GetVaultIsLocked();
-    doc["data"]["open_position"] = memory->GetOpenPosition();
-    doc["data"]["closed_position"] = memory->GetClosedPosition();
+    doc["data"]["servo_open_position"] = memory->GetOpenPosition();
+    doc["data"]["servo_closed_position"] = memory->GetClosedPosition();
     doc["data"]["version"] = FIRMWARE_VERSION;
     char name[EEPROM_MAX_NAME_LENGTH];
     memory->GetName(name, EEPROM_MAX_NAME_LENGTH);
