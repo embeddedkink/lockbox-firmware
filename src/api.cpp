@@ -2,6 +2,7 @@
 #include <ArduinoJson.h>
 #include "api.h"
 #include "config.h"
+#include "eeprom_state.h"
 #include "lock.h"
 #include "main.h"
 #include "memory.h"
@@ -110,6 +111,9 @@ void ActionSettingsGet(AsyncWebServerRequest *request)
     doc["data"]["open_position"] = memory->GetOpenPosition();
     doc["data"]["closed_position"] = memory->GetClosedPosition();
     doc["data"]["version"] = FIRMWARE_VERSION;
+    char name[EEPROM_MAX_NAME_LENGTH];
+    memory->GetName(name, EEPROM_MAX_NAME_LENGTH);
+    doc["data"]["name"] = name;
     serializeJson(doc, *response);
     request->send(response);
 }
