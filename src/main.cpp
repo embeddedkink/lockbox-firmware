@@ -11,6 +11,18 @@ AsyncWiFiManager* wifiManager;
 Memory* memory;
 Lock* lock;
 
+String api_host;
+
+#include <FS.h>
+#include <LittleFS.h>
+
+String processor(const String& var)
+{
+  if(var == "API_HOST")
+    return api_host;
+  return String();
+}
+
 void setup()
 {
     Serial.begin(9600);
@@ -18,12 +30,11 @@ void setup()
 
     client = new WiFiClient;
     dns = new DNSServer;
-    api_server = new AsyncWebServer(TCP_PORT);
+    api_server = new AsyncWebServer(API_PORT);
     frontend_server = new AsyncWebServer(80);
 
     memory = new Memory();
     lock = new Lock(PINSERVO, memory->GetOpenPosition(), memory->GetClosedPosition());
-
     if (memory->GetVaultIsLocked())
     {
         lock->SetClosed();
@@ -43,6 +54,21 @@ void setup()
         delay(3000);
         ESP.restart();
     }
+
+    api_host = "";
+    api_host.concat("http://");
+    api_host.concat(WiFi.localIP().toString());
+    api_host.concat(":");
+    api_host.concat(API_PORT);
+    
+    // Wifi is connected, we can repurpose frontend server
+    frontend_server->reset();
+    frontend_server->begin();
+    if(!LittleFS.begin()){
+        Serial.println("An Error has occurred while mounting LittleFS");
+    }
+    frontend_server->serveStatic("/", LittleFS, "/").setTemplateProcessor(processor);;
+
     if (!MDNS.begin(box_name))
     {
         Serial.println("Error setting up MDNS responder!");
@@ -51,7 +77,7 @@ void setup()
     {
         Serial.println("mDNS responder started");
     }
-    MDNS.addService("ekilb", "tcp", TCP_PORT);
+    MDNS.addService("ekilb", "tcp", API_PORT);
 
     StartServer(); // api.h
 }

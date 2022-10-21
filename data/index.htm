@@ -1,0 +1,67 @@
+<head>
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+
+<script>
+    window.onload = init;
+
+
+    function init() {
+        var lockform = document.getElementById('lockform');
+        function onLockSubmit(event) {
+            if (event) { event.preventDefault(); }
+            Post(lockform, "/lock")
+        }
+        lockform.addEventListener('submit', onLockSubmit, false);
+        lockform.submit = onLockSubmit;
+        
+
+        var unlockform = document.getElementById('unlockform');
+        function onUnlockSubmit(event) {
+            if (event) { event.preventDefault(); }
+            Post(unlockform, "/unlock")
+        }
+        unlockform.addEventListener('submit', onUnlockSubmit, false);
+        unlockform.submit = onUnlockSubmit;
+    }
+
+    function Post(form, endpoint) {
+        var data = new FormData(form);
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "%API_HOST%".concat(endpoint));
+        xhr.onload = function () { console.log(this.response); };
+        xhr.send(data);
+        return false;
+    }
+</script>
+
+<body>
+    <main>
+        <h1>EKI Lockbox</h1>
+        <fieldset>
+            <legend>Vault mode</legend>
+            <p>
+            <form id="lockform">
+                <input type="text" name="password" required />
+                <button type="submit">Lock</button>
+                </p>
+            </form>
+            <p>
+            <form id="unlockform">
+                <input type="text" name="password" required />
+                <button type="submit">Unlock</button>
+                </p>
+            </form>
+        </fieldset>
+
+        <fieldset id="">
+        </fieldset>
+    </main>
+    <footer>
+        Brought to you by Embedded Kink Industries
+        <br>
+        Open source is love
+    </footer>
+</body>
