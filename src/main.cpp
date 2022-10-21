@@ -69,6 +69,7 @@ void setup()
     }
     frontend_server->serveStatic("/", LittleFS, "/").setTemplateProcessor(processor);;
 
+    MDNS.addService("ekilb", "tcp", API_PORT);
     if (!MDNS.begin(box_name))
     {
         Serial.println("Error setting up MDNS responder!");
@@ -77,7 +78,7 @@ void setup()
     {
         Serial.println("mDNS responder started");
     }
-    MDNS.addService("ekilb", "tcp", API_PORT);
+    MDNS.announce();
 
     StartServer(); // api.h
 }

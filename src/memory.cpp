@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <EEPROM.h>
 #include "config.h"
 #include "eeprom_state.h"
@@ -5,7 +6,7 @@
 
 uint32_t Memory::GetAgnosticChipId()
 {
-#if defined(ARDUINO_ARCH_ESP8266)
+#if defined(ESP8266)
     return ESP.getChipId();
 #elif defined(ESP32)
     uint32_t id = 0;
