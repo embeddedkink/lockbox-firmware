@@ -78,11 +78,11 @@ void setup()
     {
         Serial.println("mDNS responder started");
     }
-    MDNS.announce();
 
     StartServer(); // api.h
 }
 
 void loop()
 {
+    MDNS.update();
 }
