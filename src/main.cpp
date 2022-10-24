@@ -84,5 +84,7 @@ void setup()
 
 void loop()
 {
+    #if defined(ESP8266)
     MDNS.update();
+    #endif
 }
