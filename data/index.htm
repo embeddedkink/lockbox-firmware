@@ -99,23 +99,7 @@
 <body>
     <main>
         <h1>EKI Lockbox <b id="lockIndicator"></b></h1>
-        
-        <fieldset>
-            <legend>Box</legend>
-            <form id="settingsform">
-                <label for="settingsformName">Name</label>
-                <input id="settingsformName" type="text" name="name" autocomplete="off" />
-                <label for="settingsformOpenPosition">Open</label>
-                <input id="settingsformOpenPosition" type="number" name="servo_open_position" autocomplete="off" />
-                <label for="settingsformClosedPosition">Closed</label>
-                <input id="settingsformClosedPosition" type="number" name="servo_closed_position" autocomplete="off" />
-                <br>
-                <button type="submit">Set</button>
-            </form>
-            <form id="resetform">
-                <button type="submit">Reset</button>
-            </form>
-        </fieldset>
+
         <fieldset>
             <legend>Vault mode</legend>
             <p>
@@ -135,12 +119,34 @@
         </fieldset>
 
         <fieldset>
-            <legend>Emlalock</legend>
-            wip
+            <legend>Box</legend>
+            <form id="settingsform">
+                <label for="settingsformName">Name</label>
+                <input id="settingsformName" type="text" name="name" autocomplete="off" />
+                <label for="settingsformOpenPosition">Open</label>
+                <input id="settingsformOpenPosition" type="number" name="servo_open_position" autocomplete="off" />
+                <label for="settingsformClosedPosition">Closed</label>
+                <input id="settingsformClosedPosition" type="number" name="servo_closed_position" autocomplete="off" />
+                <br>
+                <button type="submit">Set</button>
+            </form>
+            <form id="resetform">
+                <button type="submit">Reset</button>
+            </form>
         </fieldset>
+        
+
         <fieldset>
-            <legend>Adventure mode</legend>
-            wip
+            <legend>Dependencies</legend>
+            <p>
+                <a href="https://github.com/alanswx/ESPAsyncWiFiManager">ESPAsyncWiFiManger</a> (MIT)
+                <br>
+                <a href="https://github.com/me-no-dev/ESPAsyncWebServer">ESPAsyncWebServer</a> (LGPL v2.1)
+                <br>
+                <a href="https://github.com/madhephaestus/ESP32Servo">ESP32Servo</a> (LGPL v2.1)
+                <br>
+                <a href="https://github.com/bblanchon/ArduinoJson">ArduinoJson</a> (MIT)
+            </p>
         </fieldset>
     </main>
     <footer>
