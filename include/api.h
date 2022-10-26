@@ -10,5 +10,6 @@ void ActionUpdate(AsyncWebServerRequest *request);
 void ActionSettingsGet(AsyncWebServerRequest *request);
 void ActionSettingsPost(AsyncWebServerRequest *request);
 void NotFound(AsyncWebServerRequest *request);
+void ActionReset(AsyncWebServerRequest *request);
 
 #endif // API_H

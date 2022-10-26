@@ -153,3 +153,13 @@ bool Memory::GetVaultIsLocked()
     EEPROM.get(0, state);
     return state.vault_locked;
 }
+
+void Memory::Reset()
+{
+    int length = EEPROM.length();
+    for (int i = 0; i < length; i++)
+    {
+        EEPROM.put(i, 0xFF);
+    }
+    EEPROM.commit();
+}

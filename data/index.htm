@@ -33,6 +33,14 @@
         settingsform.addEventListener('submit', onSettingsSubmit, false);
         settingsform.submit = onSettingsSubmit;
 
+        var resetform = document.getElementById('resetform');
+        function onResetSubmit(event) {
+            if (event) { event.preventDefault(); }
+            Post(resetform, "/reset")
+        }
+        resetform.addEventListener('submit', onResetSubmit, false);
+        resetform.submit = onResetSubmit;
+
         UpdateBoxInfo();
     }
 
@@ -103,6 +111,9 @@
                 <input id="settingsformClosedPosition" type="number" name="servo_closed_position" autocomplete="off" />
                 <br>
                 <button type="submit">Set</button>
+            </form>
+            <form id="resetform">
+                <button type="submit">Reset</button>
             </form>
         </fieldset>
         <fieldset>

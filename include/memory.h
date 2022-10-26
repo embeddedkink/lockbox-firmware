@@ -20,4 +20,6 @@ public:
     bool SetVaultLocked(const char *new_password);
     bool SetVaultUnlocked(const char *password);
     bool GetVaultIsLocked();
+
+    void Reset();
 };

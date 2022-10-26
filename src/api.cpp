@@ -15,6 +15,7 @@ void StartServer()
     api_server->on("/unlock", HTTP_POST, ActionUnlock);
     api_server->on("/settings", HTTP_GET, ActionSettingsGet);
     api_server->on("/settings", HTTP_POST, ActionSettingsPost);
+    api_server->on("/reset", HTTP_POST, ActionReset);
     api_server->begin();
 }
 
@@ -188,4 +189,22 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
 
     serializeJson(doc, *response);
     request->send(response);
+}
+
+void ActionReset(AsyncWebServerRequest *request)
+{
+    AsyncResponseStream *response = request->beginResponseStream("application/json");
+    response->addHeader("Access-Control-Allow-Origin", "*");
+    DynamicJsonDocument doc(512);
+
+    memory->Reset();
+    wifiManager->resetSettings();
+
+    response->setCode(200);
+    doc["result"] = "success";
+
+    serializeJson(doc, *response);
+    request->send(response);
+
+    ESP.restart();
 }
