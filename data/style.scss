@@ -1,0 +1,18 @@
+[data-theme="light"],
+:root:not([data-theme="dark"]) {
+  --primary: #900090;
+  --primary-hover: #800080;
+  --primary-focus: rgba(144, 0, 144, 0.25);
+  --primary-inverse: #FFF;
+}
+
+/* Green Dark scheme (Auto) */
+/* Automatically enabled if user has Dark mode enabled */
+@media only screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --primary: #900090;
+    --primary-hover: #800080;
+    --primary-focus: rgba(144, 0, 144, 0.25);
+    --primary-inverse: #FFF;
+  }
+}

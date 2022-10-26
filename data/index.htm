@@ -1,12 +1,12 @@
 <head>
-    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+    <link rel="stylesheet" href="style.scss">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
 
 <script>
     window.onload = Init;
-
 
     function Init() {
         var lockform = document.getElementById('lockform');
@@ -24,7 +24,7 @@
         }
         unlockform.addEventListener('submit', onUnlockSubmit, false);
         unlockform.submit = onUnlockSubmit;
-        
+
         var settingsform = document.getElementById('settingsform');
         function onSettingsSubmit(event) {
             if (event) { event.preventDefault(); }
@@ -65,30 +65,27 @@
     }
 
     function GenerateKey(size) {
-        var result           = '';
-        var characters       = 'abcdefghkmnpqrstuvwxyz23456789';
+        var result = '';
+        var characters = 'abcdefghkmnpqrstuvwxyz23456789';
         var charactersLength = characters.length;
-        for ( var i = 0; i < size; i++ ) {
+        for (var i = 0; i < size; i++) {
             result += characters.charAt(Math.floor(Math.random() * charactersLength));
         }
         document.getElementById("lockformPassword").value = result;
     }
 
-    function UpdateBoxInfo()
-    {
+    function UpdateBoxInfo() {
         var xhr = new XMLHttpRequest();
         xhr.open("GET", "%API_HOST%".concat("/settings"));
-        xhr.onload = function () { 
+        xhr.onload = function () {
             var response = JSON.parse(this.response)
             document.getElementById("settingsformName").value = response["data"]["name"];
             document.getElementById("settingsformOpenPosition").value = response["data"]["servo_open_position"];
             document.getElementById("settingsformClosedPosition").value = response["data"]["servo_closed_position"];
-            if (response["data"]["locked"])
-            {
+            if (response["data"]["locked"]) {
                 document.getElementById("lockIndicator").innerHTML = "&#128274";
             }
-            else
-            {
+            else {
                 document.getElementById("lockIndicator").innerHTML = "&#128275";
             }
         };
@@ -97,47 +94,51 @@
 </script>
 
 <body>
-    <main>
+    <p>
+    <header class="container">
         <h1>EKI Lockbox <b id="lockIndicator"></b></h1>
-
-        <fieldset>
-            <legend>Vault mode</legend>
-            <p>
+    </header>
+    <main class="container">
+        <article>
+            <h2>Vault mode</h2>
+            <section>
                 <button onclick="GenerateKey(12)">Generate</button>
                 <button onclick="DownloadKey()">Download</button>
-            <form id="lockform">
-                <input id="lockformPassword" type="text" name="password" required autocomplete="off" />
-                <button type="submit">Lock</button>
-            </form>
-            </p>
-            <p>
-            <form id="unlockform">
-                <input id="unlockformPassword" type="text" name="password" required autocomplete="off" />
-                <button type="submit">Unlock</button>
-                </p>
-            </form>
-        </fieldset>
-
-        <fieldset>
-            <legend>Box</legend>
-            <form id="settingsform">
-                <label for="settingsformName">Name</label>
-                <input id="settingsformName" type="text" name="name" autocomplete="off" />
-                <label for="settingsformOpenPosition">Open</label>
-                <input id="settingsformOpenPosition" type="number" name="servo_open_position" autocomplete="off" />
-                <label for="settingsformClosedPosition">Closed</label>
-                <input id="settingsformClosedPosition" type="number" name="servo_closed_position" autocomplete="off" />
-                <br>
-                <button type="submit">Set</button>
-            </form>
-            <form id="resetform">
-                <button type="submit">Reset</button>
-            </form>
-        </fieldset>
-        
-
-        <fieldset>
-            <legend>Dependencies</legend>
+                <form id="lockform">
+                    <input id="lockformPassword" type="text" name="password" required autocomplete="off" />
+                    <button type="submit">Lock</button>
+                </form>
+            </section>
+            <section>
+                <form id="unlockform">
+                    <input id="unlockformPassword" type="text" name="password" required autocomplete="off" />
+                    <button type="submit">Unlock</button>
+                </form>
+            </section>
+        </article>
+        <article>
+            <h2>Box</h2>
+            <section>
+                <form id="settingsform">
+                    <label for="settingsformName">Name</label>
+                    <input id="settingsformName" type="text" name="name" autocomplete="off" />
+                    <label for="settingsformOpenPosition">Open</label>
+                    <input id="settingsformOpenPosition" type="number" name="servo_open_position" autocomplete="off" />
+                    <label for="settingsformClosedPosition">Closed</label>
+                    <input id="settingsformClosedPosition" type="number" name="servo_closed_position"
+                        autocomplete="off" />
+                    <br>
+                    <button type="submit">Set</button>
+                </form>
+            </section>
+            <section>
+                <form id="resetform">
+                    <button class="outline" type="submit">Reset</button>
+                </form>
+            </section>
+        </article>
+        <article>
+            <h2>Dependencies</h2>
             <p>
                 <a href="https://github.com/alanswx/ESPAsyncWiFiManager">ESPAsyncWiFiManger</a> (MIT)
                 <br>
@@ -147,11 +148,10 @@
                 <br>
                 <a href="https://github.com/bblanchon/ArduinoJson">ArduinoJson</a> (MIT)
             </p>
-        </fieldset>
+        </article>
     </main>
-    <footer>
+    <footer class="container">
         Brought to you by Embedded Kink Industries
-        <br>
-        Open source is love
     </footer>
+    </p>
 </body>
