@@ -125,66 +125,75 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
     response->addHeader("Access-Control-Allow-Origin", "*");
     DynamicJsonDocument doc(1024);
 
-    bool setting_updated = false;
-
-    String name;
-    if (request->hasParam("name", true))
-    {
-        name = request->getParam("name", true)->value();
-        bool saved = memory->SetName(name.c_str());
-        if (saved)
-        {
-            response->setCode(200);
-            doc["result"] = "success";
-            setting_updated = true;
-        }
-        else
-        {
-            response->setCode(500);
-            doc["result"] = "error";
-            doc["error"] = "MemoryError";
-        }
-    }
-
-    if (request->hasParam("servo_open_position", true))
-    {
-        int open_position = request->getParam("servo_open_position", true)->value().toInt();
-        if (memory->SetOpenPosition(open_position))
-        {
-            response->setCode(200);
-            doc["result"] = "success";
-            setting_updated = true;
-        }
-        else
-        {
-            response->setCode(500);
-            doc["result"] = "error";
-            doc["error"] = "MemoryError";
-        }
-    }
-
-    if (request->hasParam("servo_closed_position", true))
-    {
-        int closed_position = request->getParam("servo_closed_position", true)->value().toInt();
-        if (memory->SetClosedPosition(closed_position))
-        {
-            response->setCode(200);
-            doc["result"] = "success";
-            setting_updated = true;
-        }
-        else
-        {
-            response->setCode(500);
-            doc["result"] = "error";
-            doc["error"] = "MemoryError";
-        }
-    }
-
-    if (!setting_updated)
+    if (memory->GetVaultIsLocked())
     {
         response->setCode(400);
         doc["result"] = "error";
-        doc["error"] = "NotSaved";
+        doc["error"] = "VaultLocked";
+    }
+    else
+    {
+        bool setting_updated = false;
+
+        String name;
+        if (request->hasParam("name", true))
+        {
+            name = request->getParam("name", true)->value();
+            bool saved = memory->SetName(name.c_str());
+            if (saved)
+            {
+                response->setCode(200);
+                doc["result"] = "success";
+                setting_updated = true;
+            }
+            else
+            {
+                response->setCode(500);
+                doc["result"] = "error";
+                doc["error"] = "MemoryError";
+            }
+        }
+
+        if (request->hasParam("servo_open_position", true))
+        {
+            int open_position = request->getParam("servo_open_position", true)->value().toInt();
+            if (memory->SetOpenPosition(open_position))
+            {
+                response->setCode(200);
+                doc["result"] = "success";
+                setting_updated = true;
+            }
+            else
+            {
+                response->setCode(500);
+                doc["result"] = "error";
+                doc["error"] = "MemoryError";
+            }
+        }
+
+        if (request->hasParam("servo_closed_position", true))
+        {
+            int closed_position = request->getParam("servo_closed_position", true)->value().toInt();
+            if (memory->SetClosedPosition(closed_position))
+            {
+                response->setCode(200);
+                doc["result"] = "success";
+                setting_updated = true;
+            }
+            else
+            {
+                response->setCode(500);
+                doc["result"] = "error";
+                doc["error"] = "MemoryError";
+            }
+        }
+
+        if (!setting_updated)
+        {
+            response->setCode(400);
+            doc["result"] = "error";
+            doc["error"] = "NotSaved";
+        }
     }
 
     serializeJson(doc, *response);
@@ -197,14 +206,22 @@ void ActionReset(AsyncWebServerRequest *request)
     response->addHeader("Access-Control-Allow-Origin", "*");
     DynamicJsonDocument doc(512);
 
-    memory->Reset();
-    wifiManager->resetSettings();
-
-    response->setCode(200);
-    doc["result"] = "success";
-
-    serializeJson(doc, *response);
-    request->send(response);
-
-    ESP.restart();
+    if (memory->GetVaultIsLocked())
+    {
+        response->setCode(400);
+        doc["result"] = "error";
+        doc["error"] = "VaultLocked";
+        serializeJson(doc, *response);
+        request->send(response);
+    }
+    else
+    {
+        memory->Reset();
+        wifiManager->resetSettings();
+        response->setCode(200);
+        doc["result"] = "success";
+        serializeJson(doc, *response);
+        request->send(response);
+        ESP.restart();
+    }
 }
