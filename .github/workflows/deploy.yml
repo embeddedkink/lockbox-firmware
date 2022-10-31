@@ -2,7 +2,7 @@ name: content to Pages
 
 on:
   push:
-    branches: ["staging"]
+    branches: ["main"]
 
   workflow_dispatch:
 
