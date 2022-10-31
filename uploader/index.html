@@ -1,8 +1,26 @@
 <!DOCTYPE html>
-<html>
+
+<head>
+    <link rel="shortcut icon" href="#" />
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
 <body>
-    <h1>ESP-Web-Tool for EKI lockbox</h1>
-    <script type="module" src="https://unpkg.com/esp-web-tools@3.4.2/dist/web/install-button.js?module"></script>
-    <esp-web-install-button manifest="firmware/manifest.json"></esp-web-install-button>
+    <main class="container">
+        <h1>EKI Lockbox installer</h1>
+        <article>
+            <p>This installer uses the latest commit on main of <a href="https://github.com/embeddedkink/lockbox-firmware">the official firmware</a></p>
+            <script type="module"
+                src="https://unpkg.com/esp-web-tools@3.4.2/dist/web/install-button.js?module"></script>
+            <esp-web-install-button manifest="firmware/manifest.json">
+                <button slot="activate">Install</button>
+                <span slot="unsupported">Browser not supported</span>
+                <span slot="not-allowed">HTTP not supported</span>
+            </esp-web-install-button>
+        </article>
+    </main>
 </body>
+
 </html>
