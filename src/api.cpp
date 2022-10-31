@@ -52,7 +52,7 @@ void ActionLock(AsyncWebServerRequest *request)
         {
             response->setCode(500);
             doc["result"] = "error";
-            doc["error"] = "BadPassword";
+            doc["error"] = "NotLocked";
         }
     }
     else

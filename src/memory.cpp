@@ -63,6 +63,7 @@ Memory::Memory()
 
 bool Memory::SetName(const char *name)
 {
+    // TODO: restart esp or restart mdns with correct name
     if (strlen(name) >= EEPROM_MAX_NAME_LENGTH + 1)
     {
         return false;
@@ -145,6 +146,15 @@ bool Memory::SetVaultUnlocked(const char *password)
     {
         return false;
     }
+}
+
+bool Memory::SetVaultUnlocked()
+{
+    EEPROMState state;
+    EEPROM.get(0, state);
+    state.vault_locked = false;
+    EEPROM.put(0, state);
+    return EEPROM.commit();
 }
 
 bool Memory::GetVaultIsLocked()

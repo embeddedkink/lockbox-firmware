@@ -28,6 +28,8 @@ void setup()
     Serial.begin(9600);
     delay(500);
 
+    pinMode(D3, INPUT_PULLUP);
+
     client = new WiFiClient;
     dns = new DNSServer;
     api_server = new AsyncWebServer(API_PORT);
@@ -86,5 +88,13 @@ void loop()
 {
     #if defined(ESP8266)
     MDNS.update();
+    #endif
+
+    #if defined(ESP8266)
+    if (!digitalRead(D3))
+    {
+        memory->SetVaultUnlocked();
+        ESP.restart();
+    }
     #endif
 }
