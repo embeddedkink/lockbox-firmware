@@ -61,9 +61,6 @@ jobs:
     steps:
       - name: ls
         run: |
-          ls 
-          ls .pio
-          ls .pio/build
           ls bins
       - name: copy bins
         run: |
