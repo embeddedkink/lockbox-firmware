@@ -52,13 +52,13 @@ jobs:
         mv .pio/build/nodemcuv2/littlefs.bin bins/nodemcuv2-fs.bin
     - name: copy bins
       run: |
-          cp bins/*.bin ./uploader/firmware
-      - name: Setup Pages
-        uses: actions/configure-pages@v2
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          path: './uploader'
+        cp bins/*.bin ./uploader/firmware
+    - name: Setup Pages
+      uses: actions/configure-pages@v2
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v1
+      with:
+        path: './uploader'
 
   deploy:
     environment:
