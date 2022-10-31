@@ -50,12 +50,17 @@
             var response = JSON.parse(this.response)
             if (response["result"] != "success")
             {
-                form.querySelector('input[name="password"]').setAttribute("aria-invalid", "true");
-                if (response["error"] == "BadPassword")
+                passwordField = form.querySelector('input[name="password"]')
+                if (passwordField)
+                {
+                    passwordField.setAttribute("aria-invalid", "true");
+                }
+                if (response["error"] == "AlreadyLocked")
                 {
                 }
-                else if (response["error"] == "NotLocked")
+                else if (response["error"] == "VaultLocked")
                 {
+                    alert("Cannot make this change when vault is locked!");
                 }
                 else
                 {
@@ -106,14 +111,13 @@
 
     function DisplayBoxUnreachable()
     {
-        document.getElementById("lockIndicator").innerHTML = "&#10060";
-        alert("Box seems to be offline");
+        document.getElementById("lockIndicator").innerHTML = "&#10060 (offline)";
     }
 
     function UpdateBoxInfo() {
         var xhr = new XMLHttpRequest();
         xhr.open("GET", "%API_HOST%".concat("/settings"));
-        xhr.timeout = 5000;
+        xhr.timeout = 10000;
         xhr.onload = function () {
             var response = JSON.parse(this.response)
             document.title = response["data"]["name"];
@@ -123,9 +127,13 @@
             document.getElementById("settingsformClosedPosition").value = response["data"]["servo_closed_position"];
             if (response["data"]["locked"]) {
                 document.getElementById("lockIndicator").innerHTML = "&#128274";
+                document.getElementById("settingsform").querySelector('button[type="submit"]').setAttribute("disabled", "true");
+                document.getElementById("resetform").querySelector('button[type="submit"]').setAttribute("disabled", "true");
             }
             else {
                 document.getElementById("lockIndicator").innerHTML = "&#128275";
+                document.getElementById("settingsform").querySelector('button[type="submit"]').removeAttribute("disabled");
+                document.getElementById("resetform").querySelector('button[type="submit"]').removeAttribute("disabled");
             }
         };
         xhr.ontimeout = function () {
@@ -180,7 +188,7 @@
                                 autocomplete="off" />
                         </span>
                     </span>
-                    <button type="submit">Set</button>
+                    <button type="submit">Set (restarts box)</button>
                 </form>
             </section>
             <section>

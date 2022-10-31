@@ -37,31 +37,39 @@ void ActionLock(AsyncWebServerRequest *request)
     response->addHeader("Access-Control-Allow-Origin", "*");
     DynamicJsonDocument doc(512);
 
-    String password;
-    if (request->hasParam("password", true))
-    {
-        password = request->getParam("password", true)->value();
-        bool saved_lock = memory->SetVaultLocked(password.c_str());
-        if (saved_lock)
-        {
-            lock->SetClosed();
-            response->setCode(200);
-            doc["result"] = "success";
-        }
-        else
-        {
-            response->setCode(500);
-            doc["result"] = "error";
-            doc["error"] = "NotLocked";
-        }
-    }
-    else
+    if (memory->GetVaultIsLocked())
     {
         response->setCode(400);
         doc["result"] = "error";
-        doc["error"] = "NoPassword";
+        doc["error"] = "AlreadyLocked";
     }
-
+    else
+    {
+        String password;
+        if (request->hasParam("password", true))
+        {
+            password = request->getParam("password", true)->value();
+            bool saved_lock = memory->SetVaultLocked(password.c_str());
+            if (saved_lock)
+            {
+                lock->SetClosed();
+                response->setCode(200);
+                doc["result"] = "success";
+            }
+            else
+            {
+                response->setCode(500);
+                doc["result"] = "error";
+                doc["error"] = "MemoryError";
+            }
+        }
+        else
+        {
+            response->setCode(400);
+            doc["result"] = "error";
+            doc["error"] = "NoPassword";
+        }
+    }
     serializeJson(doc, *response);
     request->send(response);
 }
@@ -87,7 +95,7 @@ void ActionUnlock(AsyncWebServerRequest *request)
         {
             response->setCode(500);
             doc["result"] = "error";
-            doc["error"] = "BadPassword";
+            doc["error"] = "PasswordFailure";
         }
     }
     else
@@ -125,6 +133,7 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
     response->addHeader("Access-Control-Allow-Origin", "*");
     DynamicJsonDocument doc(1024);
 
+    bool setting_updated = false;
     if (memory->GetVaultIsLocked())
     {
         response->setCode(400);
@@ -133,7 +142,6 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
     }
     else
     {
-        bool setting_updated = false;
 
         String name;
         if (request->hasParam("name", true))
@@ -198,6 +206,12 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
 
     serializeJson(doc, *response);
     request->send(response);
+
+    // HACK
+    if (setting_updated)
+    {
+        ESP.restart();
+    }
 }
 
 void ActionReset(AsyncWebServerRequest *request)
