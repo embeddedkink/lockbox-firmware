@@ -45,18 +45,12 @@ jobs:
       working-directory: .
       run: pio run -t buildfs -e nodemcuv2
 
-    - name: Rename and move bin file
-      run: mv .pio/build/nodemcuv2/firmware.bin .pio/build/nodemcuv2-fw.bin
+    - name: Rename and move bins
+      run: |
+        mkdir bins
+        mv .pio/build/nodemcuv2/firmware.bin bins/nodemcuv2-fw.bin
+        mv .pio/build/nodemcuv2/littlefs.bin bins/nodemcuv2-fs.bin
 
-    - name: Rename and move fs file
-      run: mv .pio/build/nodemcuv2/littlefs.bin .pio/build/nodemcuv2-fs.bin
-
-#    - name: Release
-#      uses: softprops/action-gh-release@v1
-#      with:
-#        files: |
-#          .pio/build/nodemcuv2-fw.bin
-#          .pio/build/nodemcuv2-fs.bin
 
   deploy:
     environment:
@@ -65,10 +59,15 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: copy fw
-        run: cp .pio/build/nodemcuv2-fw.bin ./uploader/firmware
-      - name: copy fs
-        run: cp .pio/build/nodemcuv2-fs.bin ./uploader/firmware
+      - name: ls
+        run: |
+          ls 
+          ls .pio
+          ls .pio/build
+          ls bins
+      - name: copy bins
+        run: |
+          cp bins/*.bin ./uploader/firmware
       - name: Setup Pages
         uses: actions/configure-pages@v2
       - name: Upload artifact
