@@ -28,7 +28,9 @@ void setup()
     Serial.begin(9600);
     delay(500);
 
+    #if defined(ESP8266)
     pinMode(D3, INPUT_PULLUP);
+    #endif
 
     client = new WiFiClient;
     dns = new DNSServer;
