@@ -50,7 +50,15 @@ jobs:
         mkdir bins
         mv .pio/build/nodemcuv2/firmware.bin bins/nodemcuv2-fw.bin
         mv .pio/build/nodemcuv2/littlefs.bin bins/nodemcuv2-fs.bin
-
+    - name: copy bins
+      run: |
+          cp bins/*.bin ./uploader/firmware
+      - name: Setup Pages
+        uses: actions/configure-pages@v2
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: './uploader'
 
   deploy:
     environment:
@@ -59,19 +67,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: ls
-        run: |
-          ls bins
-      - name: copy bins
-        run: |
-          cp bins/*.bin ./uploader/firmware
-      - name: Setup Pages
-        uses: actions/configure-pages@v2
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
-        with:
-          # Upload entire repository
-          path: './uploader'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1
