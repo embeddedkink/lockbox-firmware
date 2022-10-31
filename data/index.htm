@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+
+<head>
+    <link rel="shortcut icon" href="#" />
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+
+<script>
+    window.onload = Init;
+
+    function Init() {
+        SetFormBehaviour("lockform", "/lock");
+        SetFormBehaviour("unlockform", "/unlock");
+        SetFormBehaviour("settingsform", "/settings");
+        SetFormBehaviour("resetform", "/reset");
+        UpdateBoxInfo();
+        AutomaticallyClear(document.getElementById("lockformPassword"))
+        AutomaticallyClear(document.getElementById("unlockformPassword"))
+    }
+
+    function AutomaticallyClear(element)
+    {
+        element.addEventListener('input', (evt) => {
+            element.removeAttribute("aria-invalid");
+        })
+    }
+
+    function SetFormBehaviour(formID, endpoint) {
+        var form = document.getElementById(formID);
+        function onSubmit(event) {
+            if (event) { event.preventDefault(); }
+            form.querySelector('button[type="submit"]').setAttribute("aria-busy", "true");
+            Post(form, endpoint)
+        }
+        form.addEventListener('submit', onSubmit, false);
+        form.submit = onSubmit;
+    }
+
+    function Post(form, endpoint) {
+        var data = new FormData(form);
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "%API_HOST%".concat(endpoint));
+        xhr.timeout = 5000;
+        xhr.onload = function () {
+            console.log(this.response);
+            form.querySelector('button[type="submit"]').setAttribute("aria-busy", "false");
+            var response = JSON.parse(this.response)
+            if (response["result"] != "success")
+            {
+                passwordField = form.querySelector('input[name="password"]')
+                if (passwordField)
+                {
+                    passwordField.setAttribute("aria-invalid", "true");
+                }
+                if (response["error"] == "AlreadyLocked")
+                {
+                }
+                else if (response["error"] == "VaultLocked")
+                {
+                    alert("Cannot make this change when vault is locked!");
+                }
+                else
+                {
+                    alert("Box responded with unexpected error: " + response["error"]);
+                }
+            }
+            else
+            {
+                form.querySelector('input[name="password"]').setAttribute("aria-invalid", "false");
+            }
+            UpdateBoxInfo();
+        };
+        xhr.ontimeout = function () {
+            console.log(this.response);
+            form.querySelector('button[type="submit"]').setAttribute("aria-busy", "false");
+            DisplayBoxUnreachable();
+        }
+        xhr.onerror = function () {
+            console.log(this.response);
+            form.querySelector('button[type="submit"]').setAttribute("aria-busy", "false");
+            DisplayBoxUnreachable();
+        }
+        
+        xhr.send(data);
+    }
+
+    function DownloadKey() {
+        var key = document.getElementById("lockformPassword").value;
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(key));
+        element.setAttribute('download', "key.txt");
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    }
+
+    function GenerateKey(formInput) {
+        size = document.getElementById(formInput).value;
+        var result = '';
+        var characters = 'abcdefghkmnpqrstuvwxyz23456789';
+        var charactersLength = characters.length;
+        for (var i = 0; i < size; i++) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+        }
+        document.getElementById("lockformPassword").value = result;
+    }
+
+    function DisplayBoxUnreachable()
+    {
+        document.getElementById("lockIndicator").innerHTML = "&#10060 (offline)";
+    }
+
+    function UpdateBoxInfo() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", "%API_HOST%".concat("/settings"));
+        xhr.timeout = 10000;
+        xhr.onload = function () {
+            var response = JSON.parse(this.response)
+            document.title = response["data"]["name"];
+            document.getElementById("firmwareVersion").innerHTML = response["data"]["version"];
+            document.getElementById("settingsformName").value = response["data"]["name"];
+            document.getElementById("settingsformOpenPosition").value = response["data"]["servo_open_position"];
+            document.getElementById("settingsformClosedPosition").value = response["data"]["servo_closed_position"];
+            if (response["data"]["locked"]) {
+                document.getElementById("lockIndicator").innerHTML = "&#128274";
+                document.getElementById("settingsform").querySelector('button[type="submit"]').setAttribute("disabled", "true");
+                document.getElementById("resetform").querySelector('button[type="submit"]').setAttribute("disabled", "true");
+            }
+            else {
+                document.getElementById("lockIndicator").innerHTML = "&#128275";
+                document.getElementById("settingsform").querySelector('button[type="submit"]').removeAttribute("disabled");
+                document.getElementById("resetform").querySelector('button[type="submit"]').removeAttribute("disabled");
+            }
+        };
+        xhr.ontimeout = function () {
+            DisplayBoxUnreachable();
+        }
+        xhr.onerror = function () {
+            DisplayBoxUnreachable();
+        }
+        xhr.send();
+    }
+</script>
+
+<body>
+    <main class="container">
+        <h1>EKI Lockbox <span id="lockIndicator"></span></h1>
+        <article>
+            <h2>Vault mode</h2>
+            <section class="grid">
+                <span>
+                    <label for="generateKeyLength">Key length:</label>
+                    <input id="generateKeyLength" type="number" value=8 />
+                </span>
+                <button onclick="GenerateKey('generateKeyLength')">Generate</button>
+                <button onclick="DownloadKey()">Download</button>
+            </section>
+            <form id="lockform" class="grid">
+                <input id="lockformPassword" type="text" name="password" required autocomplete="off" />
+                <button type="submit">Lock</button>
+            </form>
+            <form id="unlockform" class="grid">
+                <input id="unlockformPassword" type="text" name="password" required autocomplete="off" />
+                <button type="submit">Unlock</button>
+            </form>
+        </article>
+        <article>
+            <h2>Box settings</h2>
+            <section>
+                <form id="settingsform">
+                    <span class="grid">
+                        <span>
+                            <label for="settingsformName">Name</label>
+                            <input id="settingsformName" type="text" name="name" autocomplete="off" />
+                        </span>
+                        <span>
+                            <label for="settingsformOpenPosition">Open</label>
+                            <input id="settingsformOpenPosition" type="number" name="servo_open_position"
+                                autocomplete="off" />
+                        </span>
+                        <span>
+                            <label for="settingsformClosedPosition">Closed</label>
+                            <input id="settingsformClosedPosition" type="number" name="servo_closed_position"
+                                autocomplete="off" />
+                        </span>
+                    </span>
+                    <button type="submit">Set (restarts box)</button>
+                </form>
+            </section>
+            <section>
+                <form id="resetform">
+                    <button class="outline" type="submit">Factory reset</button>
+                </form>
+            </section>
+            Fw: <span id="firmwareVersion">Not available</span>
+        </article>
+        <article>
+            <h2>Open source components</h2>
+            <p>
+                <a href="https://github.com/alanswx/ESPAsyncWiFiManager">ESPAsyncWiFiManger</a> (MIT)
+                <br>
+                <a href="https://github.com/me-no-dev/ESPAsyncWebServer">ESPAsyncWebServer</a> (LGPL v2.1)
+                <br>
+                <a href="https://github.com/madhephaestus/ESP32Servo">ESP32Servo</a> (LGPL v2.1)
+                <br>
+                <a href="https://github.com/bblanchon/ArduinoJson">ArduinoJson</a> (MIT)
+                <br>
+                <a href="https://picocss.com/">PicoCSS</a> (MIT)
+            </p>
+        </article>
+    </main>
+    <footer class="container">
+        Brought to you by Embedded Kink Industries
+    </footer>
+</body>
+
+</html>
