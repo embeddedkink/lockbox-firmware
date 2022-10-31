@@ -51,12 +51,12 @@ jobs:
     - name: Rename and move fs file
       run: mv .pio/build/nodemcuv2/littlefs.bin .pio/build/nodemcuv2-fs.bin
 
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: |
-          .pio/build/nodemcuv2-fw.bin
-          .pio/build/nodemcuv2-fs.bin
+#    - name: Release
+#      uses: softprops/action-gh-release@v1
+#      with:
+#        files: |
+#          .pio/build/nodemcuv2-fw.bin
+#          .pio/build/nodemcuv2-fs.bin
 
   deploy:
     environment:
