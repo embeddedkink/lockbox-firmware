@@ -4,8 +4,8 @@
       {
         "chipFamily": "ESP8266",
         "parts": [
-          { "path": "firmware/nodemcuv2-fw.bin", "offset": 0 },
-          { "path": "firmware/nodemcuv2-fs.bin", "offset": 3145728 }
+          { "path": "nodemcuv2-fw.bin", "offset": 0 },
+          { "path": "nodemcuv2-fs.bin", "offset": 3145728 }
         ]
       }
     ]
