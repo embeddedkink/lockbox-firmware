@@ -178,7 +178,7 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
         if (request->hasParam("servo_closed_position", true))
         {
             int closed_position = request->getParam("servo_closed_position", true)->value().toInt();
-            set_settings_result result = api_lockbox->SetServoOpenPosition(closed_position);
+            set_settings_result result = api_lockbox->SetServoClosedPosition(closed_position);
             if (result == SETTINGS_OK)
             {
                 response->setCode(200);

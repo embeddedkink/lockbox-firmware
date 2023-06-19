@@ -39,6 +39,7 @@ set_password_result Lockbox::SetVaultUnlocked(const char* key)
         this->memory->GetVaultPassword((char*)&stored_password, 64);
         if (strcmp(key, stored_password) == 0)
         {
+            this->memory->SetVaultUnlocked();
             return PASSWORD_OK;
         }
         else
