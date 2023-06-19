@@ -1,9 +1,9 @@
 #ifndef EEPROM_STATE_H
 #define EEPROM_STATE_H
 
-#define EEPROM_MAX_PASSWORD_LENGTH 64
-#define EEPROM_MAX_NAME_LENGTH 32
 #define EEPROM_INITSTRING "EKI_LOCKBOX"
+
+#include "config.h"
 
 struct EEPROMState
 {
