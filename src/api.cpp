@@ -117,16 +117,6 @@ void ActionSettingsGet(AsyncWebServerRequest *request)
     DynamicJsonDocument data(512);
     api_lockbox->GetSettings(&data);
     doc["data"] = data;
-
-    /*
-    doc["data"]["locked"] = memory->GetVaultIsLocked();
-    doc["data"]["servo_open_position"] = memory->GetOpenPosition();
-    doc["data"]["servo_closed_position"] = memory->GetClosedPosition();
-    doc["data"]["version"] = FIRMWARE_VERSION;
-    char name[EEPROM_MAX_NAME_LENGTH];
-    memory->GetName(name, EEPROM_MAX_NAME_LENGTH);
-    doc["data"]["name"] = name;*/
-
     serializeJson(doc, *response);
     request->send(response);
 }
