@@ -1,4 +1,4 @@
-#ifndef MAIN_H
+/*#ifndef MAIN_H
 #define MAIN_H
 
 #include <Arduino.h>
@@ -28,3 +28,4 @@ extern Memory* memory;
 extern Lock* lock;
 
 #endif // MAIN_H
+*/

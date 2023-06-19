@@ -1,7 +1,24 @@
-#include "main.h"
+//#include "main.h"
+#include <Arduino.h>
+#include <FS.h>
+#include <LittleFS.h>
+#include <WiFiClient.h>
+#include "api.h"
 #include "config.h"
 #include "eeprom_state.h"
-#include "api.h"
+#include "lock.h"
+#include "lockbox.h"
+#include "memory.h"
+
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#include "ESP8266mDNS.h"
+#elif defined(ESP32)
+#include <WiFi.h>
+#include "ESPmDNS.h"
+#endif
+#include <ESPAsyncWiFiManager.h>
+#include <ESPAsyncWebServer.h>
 
 WiFiClient* client;
 DNSServer* dns;
@@ -10,11 +27,10 @@ AsyncWebServer* frontend_server;
 AsyncWiFiManager* wifiManager;
 Memory* memory;
 Lock* lock;
+Lockbox* lockbox;
 
 String api_host;
 
-#include <FS.h>
-#include <LittleFS.h>
 
 String processor(const String& var)
 {
@@ -39,14 +55,7 @@ void setup()
 
     memory = new Memory();
     lock = new Lock(PINSERVO, memory->GetOpenPosition(), memory->GetClosedPosition());
-    if (memory->GetVaultIsLocked())
-    {
-        lock->SetClosed();
-    }
-    else
-    {
-        lock->SetOpen();
-    }
+    lockbox =  new Lockbox(lock, memory);
 
     WiFi.softAPdisconnect(true);
     char box_name[EEPROM_MAX_NAME_LENGTH];
@@ -83,7 +92,7 @@ void setup()
         Serial.println("mDNS responder started");
     }
 
-    StartServer(); // api.h
+    StartServer(api_server, lockbox, wifiManager); // api.h
 }
 
 void loop()

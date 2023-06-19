@@ -131,22 +131,6 @@ bool Memory::SetVaultLocked(const char *new_password)
     return EEPROM.commit();
 }
 
-bool Memory::SetVaultUnlocked(const char *password)
-{
-    EEPROMState state;
-    EEPROM.get(0, state);
-    if (strcmp(state.vault_password, password) == 0)
-    {
-        state.vault_locked = false;
-        EEPROM.put(0, state);
-        return EEPROM.commit();
-    }
-    else
-    {
-        return false;
-    }
-}
-
 bool Memory::SetVaultUnlocked()
 {
     EEPROMState state;
@@ -161,6 +145,13 @@ bool Memory::GetVaultIsLocked()
     EEPROMState state;
     EEPROM.get(0, state);
     return state.vault_locked;
+}
+
+void Memory::GetVaultPassword(char* password, int length)
+{
+    EEPROMState state;
+    EEPROM.get(0, state);
+    strncpy(password, state.vault_password, length);
 }
 
 void Memory::Reset()

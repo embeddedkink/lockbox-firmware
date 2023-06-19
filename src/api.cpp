@@ -1,15 +1,17 @@
 #include <AsyncJson.h>
 #include <ArduinoJson.h>
+#include <ESPAsyncWiFiManager.h>
 #include "api.h"
-#include "config.h"
-#include "eeprom_state.h"
-#include "lock.h"
-#include "main.h"
-#include "memory.h"
+#include "lockbox.h"
+#include "lockbox_result.h"
 
+Lockbox* api_lockbox;
+AsyncWiFiManager* api_wifiManager;
 
-void StartServer()
+void StartServer(AsyncWebServer* api_server, Lockbox* lockbox, AsyncWiFiManager* wifiManager)
 {
+    api_lockbox = lockbox;
+    api_wifiManager = wifiManager;
     api_server->onNotFound(NotFound);
     api_server->on("/lock", HTTP_POST, ActionLock);
     api_server->on("/unlock", HTTP_POST, ActionUnlock);
@@ -41,10 +43,9 @@ void ActionLock(AsyncWebServerRequest *request)
     if (request->hasParam("password", true))
     {
         password = request->getParam("password", true)->value();
-        bool saved_lock = memory->SetVaultLocked(password.c_str());
-        if (saved_lock)
+        set_password_result result = api_lockbox->SetVaultLocked(password.c_str());
+        if (result == PASSWORD_OK)
         {
-            lock->SetClosed();
             response->setCode(200);
             doc["result"] = "success";
         }
@@ -52,7 +53,7 @@ void ActionLock(AsyncWebServerRequest *request)
         {
             response->setCode(500);
             doc["result"] = "error";
-            doc["error"] = "NotLocked";
+            doc["error"] = "UnexpectedError";
         }
     }
     else
@@ -76,18 +77,23 @@ void ActionUnlock(AsyncWebServerRequest *request)
     if (request->hasParam("password", true))
     {
         password = request->getParam("password", true)->value();
-        bool saved_unlock = memory->SetVaultUnlocked(password.c_str());
-        if (saved_unlock)
+        set_password_result result = api_lockbox->SetVaultUnlocked(password.c_str());
+        if (result == PASSWORD_OK)
         {
-            lock->SetOpen();
             response->setCode(200);
             doc["result"] = "success";
         }
-        else
+        else if (result == WRONG_PASSWORD)
         {
             response->setCode(401);
             doc["result"] = "error";
-            doc["error"] = "BadPassword";
+            doc["error"] = "WrongPassword";
+        }
+        else
+        {
+            response->setCode(500);
+            doc["result"] = "error";
+            doc["error"] = "UnexpectedError";
         }
     }
     else
@@ -108,13 +114,19 @@ void ActionSettingsGet(AsyncWebServerRequest *request)
     DynamicJsonDocument doc(512);
     response->setCode(200);
     doc["result"] = "succes";
+    DynamicJsonDocument data(512);
+    api_lockbox->GetSettings(&data);
+    doc["data"] = data;
+
+    /*
     doc["data"]["locked"] = memory->GetVaultIsLocked();
     doc["data"]["servo_open_position"] = memory->GetOpenPosition();
     doc["data"]["servo_closed_position"] = memory->GetClosedPosition();
     doc["data"]["version"] = FIRMWARE_VERSION;
     char name[EEPROM_MAX_NAME_LENGTH];
     memory->GetName(name, EEPROM_MAX_NAME_LENGTH);
-    doc["data"]["name"] = name;
+    doc["data"]["name"] = name;*/
+
     serializeJson(doc, *response);
     request->send(response);
 }
@@ -125,7 +137,7 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
     response->addHeader("Access-Control-Allow-Origin", "*");
     DynamicJsonDocument doc(1024);
 
-    if (memory->GetVaultIsLocked())
+    if (api_lockbox->GetVaultLocked())
     {
         response->setCode(401);
         doc["result"] = "error";
@@ -134,14 +146,14 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
     else
     {
         bool setting_updated = false;
-            response->setCode(500);
+        response->setCode(500);
 
         String name;
         if (request->hasParam("name", true))
         {
             name = request->getParam("name", true)->value();
-            bool saved = memory->SetName(name.c_str());
-            if (saved)
+            set_settings_result result = api_lockbox->SetBoxName(name.c_str());
+            if (result == SETTINGS_OK)
             {
                 response->setCode(200);
                 doc["result"] = "success";
@@ -151,14 +163,15 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
             {
                 response->setCode(500);
                 doc["result"] = "error";
-                doc["error"] = "MemoryError";
+                doc["error"] = "UnexpectedError";
             }
         }
 
         if (request->hasParam("servo_open_position", true))
         {
             int open_position = request->getParam("servo_open_position", true)->value().toInt();
-            if (memory->SetOpenPosition(open_position))
+            set_settings_result result = api_lockbox->SetServoOpenPosition(open_position);
+            if (result == SETTINGS_OK)
             {
                 response->setCode(200);
                 doc["result"] = "success";
@@ -168,14 +181,15 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
             {
                 response->setCode(500);
                 doc["result"] = "error";
-                doc["error"] = "MemoryError";
+                doc["error"] = "UnexpectedError";
             }
         }
 
         if (request->hasParam("servo_closed_position", true))
         {
             int closed_position = request->getParam("servo_closed_position", true)->value().toInt();
-            if (memory->SetClosedPosition(closed_position))
+            set_settings_result result = api_lockbox->SetServoOpenPosition(closed_position);
+            if (result == SETTINGS_OK)
             {
                 response->setCode(200);
                 doc["result"] = "success";
@@ -185,7 +199,7 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
             {
                 response->setCode(500);
                 doc["result"] = "error";
-                doc["error"] = "MemoryError";
+                doc["error"] = "UnexpectedError";
             }
         }
 
@@ -206,7 +220,7 @@ void ActionReset(AsyncWebServerRequest *request)
     response->addHeader("Access-Control-Allow-Origin", "*");
     DynamicJsonDocument doc(512);
 
-    if (memory->GetVaultIsLocked())
+    if (api_lockbox->GetVaultLocked())
     {
         response->setCode(401);
         doc["result"] = "error";
@@ -216,8 +230,8 @@ void ActionReset(AsyncWebServerRequest *request)
     }
     else
     {
-        memory->Reset();
-        wifiManager->resetSettings();
+        api_lockbox->FactoryReset();
+        api_wifiManager->resetSettings();
         response->setCode(200);
         doc["result"] = "success";
         serializeJson(doc, *response);
