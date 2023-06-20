@@ -127,76 +127,89 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
     response->addHeader("Access-Control-Allow-Origin", "*");
     DynamicJsonDocument doc(1024);
 
-    if (api_lockbox->GetVaultLocked())
+    bool setting_updated = false;
+    bool setting_failed = false;
+    bool setting_not_allowed = false;
+
+    String name;
+    if (request->hasParam("name", true))
     {
-        response->setCode(401);
+        name = request->getParam("name", true)->value();
+        set_settings_result result = api_lockbox->SetBoxName(name.c_str());
+        if (result == SETTINGS_OK)
+        {
+            setting_updated = true;
+        }
+        else if (result == LOCKED)
+        {
+            setting_not_allowed = true;
+        }
+        else
+        {
+            setting_failed = true;
+        }
+    }
+
+    if (request->hasParam("servo_open_position", true))
+    {
+        int open_position = request->getParam("servo_open_position", true)->value().toInt();
+        set_settings_result result = api_lockbox->SetServoOpenPosition(open_position);
+        if (result == SETTINGS_OK)
+        {
+            setting_updated = true;
+        }
+        else if (result == LOCKED)
+        {
+            setting_not_allowed = true;
+        }
+        else
+        {
+            setting_failed = true;
+        }
+    }
+
+    if (request->hasParam("servo_closed_position", true))
+    {
+        int closed_position = request->getParam("servo_closed_position", true)->value().toInt();
+        set_settings_result result = api_lockbox->SetServoClosedPosition(closed_position);
+        if (result == SETTINGS_OK)
+        {
+            setting_updated = true;
+        }
+        else if (result == LOCKED)
+        {
+            setting_not_allowed = true;
+        }
+        else
+        {
+            setting_failed = true;
+        }
+    }
+
+    if (setting_failed)
+    {
+        response->setCode(500);
         doc["result"] = "error";
-        doc["error"] = "VaultLocked";
+        doc["error"] = "InternalError";
     }
     else
     {
-        bool setting_updated = false;
-        response->setCode(500);
-
-        String name;
-        if (request->hasParam("name", true))
+        if (setting_not_allowed)
         {
-            name = request->getParam("name", true)->value();
-            set_settings_result result = api_lockbox->SetBoxName(name.c_str());
-            if (result == SETTINGS_OK)
-            {
-                response->setCode(200);
-                doc["result"] = "success";
-                setting_updated = true;
-            }
-            else
-            {
-                response->setCode(500);
-                doc["result"] = "error";
-                doc["error"] = "UnexpectedError";
-            }
-        }
-
-        if (request->hasParam("servo_open_position", true))
-        {
-            int open_position = request->getParam("servo_open_position", true)->value().toInt();
-            set_settings_result result = api_lockbox->SetServoOpenPosition(open_position);
-            if (result == SETTINGS_OK)
-            {
-                response->setCode(200);
-                doc["result"] = "success";
-                setting_updated = true;
-            }
-            else
-            {
-                response->setCode(500);
-                doc["result"] = "error";
-                doc["error"] = "UnexpectedError";
-            }
-        }
-
-        if (request->hasParam("servo_closed_position", true))
-        {
-            int closed_position = request->getParam("servo_closed_position", true)->value().toInt();
-            set_settings_result result = api_lockbox->SetServoClosedPosition(closed_position);
-            if (result == SETTINGS_OK)
-            {
-                response->setCode(200);
-                doc["result"] = "success";
-                setting_updated = true;
-            }
-            else
-            {
-                response->setCode(500);
-                doc["result"] = "error";
-                doc["error"] = "UnexpectedError";
-            }
-        }
-
-        if (!setting_updated)
-        {
+            response->setCode(401);
             doc["result"] = "error";
-            doc["error"] = "NotSaved";
+            doc["error"] = "VaultLocked";
+        }
+        else if (setting_updated)
+        {
+            response->setCode(200);
+            doc["result"] = "success";
+        }
+        else
+        {
+            response->setCode(500);
+            doc["result"] = "error";
+            doc["error"] = "UnknownParameter";
         }
     }
 
