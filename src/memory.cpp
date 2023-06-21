@@ -1,7 +1,7 @@
 #include <Arduino.h>
-#include <EEPROM.h>
+#include <ArduinoJson.h>
+#include <LittleFS.h>
 #include "config.h"
-#include "eeprom_state.h"
 #include "memory.h"
 
 uint32_t Memory::GetAgnosticChipId()
@@ -20,146 +20,129 @@ uint32_t Memory::GetAgnosticChipId()
 #endif
 }
 
-bool Memory::VerifyEEPROMValidity()
+bool Memory::LoadString(char* path, char* setting, char* value, int len)
 {
-    EEPROMState state;
-    EEPROM.get(0, state);
-    if (memcmp(state.init_string, EEPROM_INITSTRING, sizeof(EEPROM_INITSTRING)) != 0)
-    {
-        Serial.println("State is invalid! Initstring did not match");
-        Serial.println(state.init_string);
-        return false;
-    }
-    return true;
+    DynamicJsonDocument doc(1024);
+    File file = LittleFS.open(path, "r");
+    deserializeJson(doc, file);
+    file.close();
+
+    strncpy(value, doc[setting], len);
+    return true; // HACK
 }
 
-bool Memory::InitializeEEPROM()
+int Memory::LoadInt(char* path, char* setting)
 {
-    EEPROMState state;
-    state.vault_locked = false;
-    strcpy(state.init_string, EEPROM_INITSTRING);
-    state.servo_closed_position = DEFAULT_SERVO_CLOSED_POSITION;
-    state.servo_open_position = DEFAULT_SERVO_OPEN_POSITION;
-    char default_name[EEPROM_MAX_NAME_LENGTH];
-    sprintf(default_name, "%s%06X", DEFAULT_BOX_NAME_PREFIX, this->GetAgnosticChipId());
-    strcpy(state.name, default_name);
-    EEPROM.put(0, state);
+    DynamicJsonDocument doc(1024);
+    File file = LittleFS.open(path, "r");
+    deserializeJson(doc, file);
+    file.close();
+    return doc[setting];
+}
 
-    return EEPROM.commit();
+bool Memory::Save(char* path, char* setting, char* value)
+{
+    DynamicJsonDocument doc(1024);
+    File file = LittleFS.open(path, "r");
+    deserializeJson(doc, file);
+    file.close();
+
+    doc[setting] = value;
+
+    file = LittleFS.open(path, "w");
+    serializeJson(doc, file);
+    file.close();
+    return true; // HACK
+}
+
+bool Memory::Save(char* path, char* setting, int value)
+{
+    DynamicJsonDocument doc(1024);
+    File file = LittleFS.open(path, "r");
+    deserializeJson(doc, file);
+    file.close();
+
+    doc[setting] = value;
+
+    file = LittleFS.open(path, "w");
+    serializeJson(doc, file);
+    file.close();
+    return true; // HACK
 }
 
 Memory::Memory()
 {
-    EEPROM.begin(sizeof(EEPROMState));
-    if (!this->VerifyEEPROMValidity())
+    //LittleFS.begin();
+    char name[MAX_NAME_LENGTH] = "a";
+    LoadString("/settings.json", "name", name, MAX_NAME_LENGTH);
+    if (strlen(name) == 0)
     {
-        if (!this->InitializeEEPROM())
-        {
-            Serial.println("Could not initialize EEPROM!");
-            ESP.restart();
-        }
+        char default_name[MAX_NAME_LENGTH];
+        sprintf(default_name, "%s%06X", DEFAULT_BOX_NAME_PREFIX, this->GetAgnosticChipId());
+        Save("settings.json", "name", default_name);
     }
 }
 
 bool Memory::SetName(const char *name)
 {
-    if (strlen(name) >= EEPROM_MAX_NAME_LENGTH + 1)
-    {
-        return false;
-    }
-    EEPROMState state;
-    EEPROM.get(0, state);
-    strcpy(state.name, name);
-    EEPROM.put(0, state);
-    return EEPROM.commit();
+    return Save("/settings.json", (char*)"name", (char*)name);
 }
 
 int Memory::GetName(char *name, int len)
 {
-    EEPROMState state;
-    EEPROM.get(0, state);
-    int copied = strlcpy(name, state.name, len);
-    return copied;
+    LoadString("/settings.json", "name", name, len);
+    return 0; //HACK?
 }
 
 bool Memory::SetOpenPosition(int position)
 {
-    EEPROMState state;
-    EEPROM.get(0, state);
-    state.servo_open_position = position;
-    EEPROM.put(0, state);
-    return EEPROM.commit();
+    return Save("/settings.json", "open_position", position);
 }
+
 bool Memory::SetClosedPosition(int position)
 {
-    EEPROMState state;
-    EEPROM.get(0, state);
-    state.servo_closed_position = position;
-    EEPROM.put(0, state);
-    return EEPROM.commit();
+    return Save("/settings.json", "closed_position", position);
 }
 
 int Memory::GetOpenPosition()
 {
-    EEPROMState state;
-    EEPROM.get(0, state);
-    return state.servo_open_position;
+    return LoadInt("/settings.json", "open_position");
 }
 
 int Memory::GetClosedPosition()
 {
-    EEPROMState state;
-    EEPROM.get(0, state);
-    return state.servo_closed_position;
+    return LoadInt("/settings.json", "closed_position");
 }
 
 bool Memory::SetVaultLocked(const char *new_password)
 {
-    if (strlen(new_password) >= EEPROM_MAX_PASSWORD_LENGTH + 1)
-    {
-        return false;
-    }
-    EEPROMState state;
-    EEPROM.get(0, state);
-    if (state.vault_locked)
-    {
-        return false;
-    }
-    strcpy(state.vault_password, new_password);
-    state.vault_locked = true;
-    EEPROM.put(0, state);
-    return EEPROM.commit();
+    return Save("/state.json", "password", (char*)new_password);
 }
 
 bool Memory::SetVaultUnlocked()
 {
-    EEPROMState state;
-    EEPROM.get(0, state);
-    state.vault_locked = false;
-    EEPROM.put(0, state);
-    return EEPROM.commit();
+    return Save("/state.json", "password", "");
 }
 
 bool Memory::GetVaultIsLocked()
 {
-    EEPROMState state;
-    EEPROM.get(0, state);
-    return state.vault_locked;
+    char password[MAX_PASSWORD_LENGTH];
+    LoadString("/state.json", "password", password, MAX_PASSWORD_LENGTH);
+    if (strlen(password) == 0)
+    {
+        return false;
+    }
+    else
+    {
+        return true;
+    }
 }
 
 void Memory::GetVaultPassword(char* password, int length)
 {
-    EEPROMState state;
-    EEPROM.get(0, state);
-    strncpy(password, state.vault_password, length);
+    LoadString("/state.json", "password", password, length);
 }
 
 void Memory::Reset()
 {
-    int length = EEPROM.length();
-    for (int i = 0; i < length; i++)
-    {
-        EEPROM.put(i, 0xFF);
-    }
-    EEPROM.commit();
 }

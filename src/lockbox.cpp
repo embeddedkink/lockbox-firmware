@@ -110,8 +110,8 @@ bool Lockbox::GetSettings(DynamicJsonDocument* doc)
     (*doc)["servo_open_position"] = memory->GetOpenPosition();
     (*doc)["servo_closed_position"] = memory->GetClosedPosition();
     (*doc)["version"] = FIRMWARE_VERSION;
-    char name[EEPROM_MAX_NAME_LENGTH];
-    this->memory->GetName(name, EEPROM_MAX_NAME_LENGTH);
+    char name[32];
+    this->memory->GetName(name, 32);
     (*doc)["name"] = name;
     return true;
 }

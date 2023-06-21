@@ -1,11 +1,15 @@
 #pragma once
 
+#define DEFAULT_BOX_NAME_PREFIX "eki_lockbox_"
+
 class Memory
 {
 private:
-    bool InitializeEEPROM();
     uint32_t GetAgnosticChipId();
-    bool VerifyEEPROMValidity();
+    bool LoadString(char* path, char* setting, char* value, int len);
+    int LoadInt(char* path, char* setting);
+    bool Save(char* path, char* setting, char* value);
+    bool Save(char* path, char* setting, int value);
 public:
     Memory();
 
