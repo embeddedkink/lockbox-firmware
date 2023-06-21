@@ -1,14 +1,13 @@
-#include <string.h>
 #include <ArduinoJson.h>
 #include <config.h>
 #include "lockbox.h"
 #include "memory.h"
 
-Lockbox::Lockbox(Lock* lock, Memory* memory) : lock(lock), memory(memory)
+Lockbox::Lockbox(Lock *lock, Memory *memory) : lock(lock), memory(memory)
 {
 }
 
-set_password_result Lockbox::SetVaultLocked(const char* key)
+set_password_result Lockbox::SetVaultLocked(const char *key)
 {
     if (this->memory->GetVaultIsLocked())
     {
@@ -27,7 +26,7 @@ set_password_result Lockbox::SetVaultLocked(const char* key)
     }
 }
 
-set_password_result Lockbox::SetVaultUnlocked(const char* key)
+set_password_result Lockbox::SetVaultUnlocked(const char *key)
 {
     if (!this->memory->GetVaultIsLocked())
     {
@@ -36,7 +35,7 @@ set_password_result Lockbox::SetVaultUnlocked(const char* key)
     else
     {
         char stored_password[64];
-        this->memory->GetVaultPassword((char*)&stored_password, 64);
+        this->memory->GetVaultPassword(stored_password, 64);
         if (strcmp(key, stored_password) == 0)
         {
             this->memory->SetVaultUnlocked();
@@ -49,7 +48,7 @@ set_password_result Lockbox::SetVaultUnlocked(const char* key)
     }
 }
 
-set_settings_result Lockbox::SetBoxName(const char* name)
+set_settings_result Lockbox::SetBoxName(const char *name)
 {
     this->memory->SetName(name);
     return SETTINGS_OK;
@@ -104,7 +103,7 @@ bool Lockbox::GetVaultLocked()
     return this->memory->GetVaultIsLocked();
 }
 
-bool Lockbox::GetSettings(DynamicJsonDocument* doc)
+bool Lockbox::GetSettings(DynamicJsonDocument *doc)
 {
     (*doc)["locked"] = memory->GetVaultIsLocked();
     (*doc)["servo_open_position"] = memory->GetOpenPosition();

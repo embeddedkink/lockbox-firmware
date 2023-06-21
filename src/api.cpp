@@ -5,10 +5,10 @@
 #include "lockbox.h"
 #include "lockbox_result.h"
 
-Lockbox* api_lockbox;
-AsyncWiFiManager* api_wifiManager;
+Lockbox *api_lockbox;
+AsyncWiFiManager *api_wifiManager;
 
-void StartServer(AsyncWebServer* api_server, Lockbox* lockbox, AsyncWiFiManager* wifiManager)
+void StartServer(AsyncWebServer *api_server, Lockbox *lockbox, AsyncWiFiManager *wifiManager)
 {
     api_lockbox = lockbox;
     api_wifiManager = wifiManager;
@@ -251,7 +251,7 @@ void ActionReset(AsyncWebServerRequest *request)
         doc["result"] = "success";
         serializeJson(doc, *response);
         request->send(response);
-        
+
         api_wifiManager->resetSettings();
         ESP.restart();
     }

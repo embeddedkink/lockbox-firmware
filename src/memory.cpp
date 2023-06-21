@@ -20,7 +20,7 @@ uint32_t Memory::GetAgnosticChipId()
 #endif
 }
 
-bool Memory::LoadString(char* path, char* setting, char* value, int len)
+bool Memory::LoadString(char const *path, char const *setting, char *value, int len)
 {
     DynamicJsonDocument doc(1024);
     File file = LittleFS.open(path, "r");
@@ -35,7 +35,7 @@ bool Memory::LoadString(char* path, char* setting, char* value, int len)
     return true;
 }
 
-int Memory::LoadInt(char* path, char* setting)
+int Memory::LoadInt(char const *path, char const *setting)
 {
     DynamicJsonDocument doc(1024);
     File file = LittleFS.open(path, "r");
@@ -44,7 +44,7 @@ int Memory::LoadInt(char* path, char* setting)
     return doc[setting];
 }
 
-bool Memory::Save(char* path, char* setting, char* value)
+bool Memory::Save(char const *path, char const *setting, char const *value)
 {
     DynamicJsonDocument doc(1024);
     File file = LittleFS.open(path, "r");
@@ -67,7 +67,7 @@ bool Memory::Save(char* path, char* setting, char* value)
     return true;
 }
 
-bool Memory::Save(char* path, char* setting, int value)
+bool Memory::Save(char const *path, char const *setting, int value)
 {
     DynamicJsonDocument doc(1024);
     File file = LittleFS.open(path, "r");
@@ -92,7 +92,7 @@ bool Memory::Save(char* path, char* setting, int value)
 
 Memory::Memory()
 {
-    //LittleFS.begin();
+    // LittleFS.begin();
     char name[MAX_NAME_LENGTH] = "a";
     LoadString("/settings.json", "name", name, MAX_NAME_LENGTH);
     if (strlen(name) == 0)
@@ -105,7 +105,7 @@ Memory::Memory()
 
 bool Memory::SetName(const char *name)
 {
-    return Save("/settings.json", (char*)"name", (char*)name);
+    return Save("/settings.json", "name", name);
 }
 
 bool Memory::GetName(char *name, int len)
@@ -135,7 +135,7 @@ int Memory::GetClosedPosition()
 
 bool Memory::SetVaultLocked(const char *new_password)
 {
-    return Save("/state.json", "password", (char*)new_password);
+    return Save("/state.json", "password", new_password);
 }
 
 bool Memory::SetVaultUnlocked()
@@ -157,7 +157,7 @@ bool Memory::GetVaultIsLocked()
     }
 }
 
-void Memory::GetVaultPassword(char* password, int length)
+void Memory::GetVaultPassword(char *password, int length)
 {
     LoadString("/state.json", "password", password, length);
 }

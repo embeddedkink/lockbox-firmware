@@ -1,4 +1,3 @@
-//#include "main.h"
 #include <Arduino.h>
 #include <FS.h>
 #include <LittleFS.h>
@@ -19,23 +18,22 @@
 #include <ESPAsyncWiFiManager.h>
 #include <ESPAsyncWebServer.h>
 
-WiFiClient* client;
-DNSServer* dns;
-AsyncWebServer* api_server;
-AsyncWebServer* frontend_server;
-AsyncWiFiManager* wifiManager;
-Memory* memory;
-Lock* lock;
-Lockbox* lockbox;
+WiFiClient *client;
+DNSServer *dns;
+AsyncWebServer *api_server;
+AsyncWebServer *frontend_server;
+AsyncWiFiManager *wifiManager;
+Memory *memory;
+Lock *lock;
+Lockbox *lockbox;
 
 String api_host;
 
-
-String processor(const String& var)
+String processor(const String &var)
 {
-  if(var == "API_HOST")
-    return api_host;
-  return String();
+    if (var == "API_HOST")
+        return api_host;
+    return String();
 }
 
 void setup()
@@ -43,13 +41,14 @@ void setup()
     Serial.begin(9600);
     delay(10);
 
-    if(!LittleFS.begin()){
+    if (!LittleFS.begin())
+    {
         Serial.println("An Error has occurred while mounting LittleFS");
     }
 
-    #if defined(ESP8266)
+#if defined(ESP8266)
     pinMode(D3, INPUT_PULLUP);
-    #endif
+#endif
 
     client = new WiFiClient;
     dns = new DNSServer;
@@ -58,7 +57,7 @@ void setup()
 
     memory = new Memory();
     lock = new Lock(PINSERVO, memory->GetOpenPosition(), memory->GetClosedPosition());
-    lockbox =  new Lockbox(lock, memory);
+    lockbox = new Lockbox(lock, memory);
 
     WiFi.softAPdisconnect(true);
     char box_name[MAX_NAME_LENGTH];
@@ -76,11 +75,12 @@ void setup()
     api_host.concat(WiFi.localIP().toString());
     api_host.concat(":");
     api_host.concat(API_PORT);
-    
+
     // Wifi is connected, we can repurpose frontend server
     frontend_server->reset();
     frontend_server->begin();
-    frontend_server->serveStatic("/", LittleFS, "/www").setTemplateProcessor(processor);;
+    frontend_server->serveStatic("/", LittleFS, "/www").setTemplateProcessor(processor);
+    ;
 
     MDNS.addService("ekilb", "tcp", API_PORT);
     if (!MDNS.begin(box_name))
@@ -96,15 +96,15 @@ void setup()
 
 void loop()
 {
-    #if defined(ESP8266)
+#if defined(ESP8266)
     MDNS.update();
-    #endif
+#endif
 
-    #if defined(ESP8266)
+#if defined(ESP8266)
     if (!digitalRead(D3))
     {
         memory->SetVaultUnlocked();
         ESP.restart();
     }
-    #endif
+#endif
 }

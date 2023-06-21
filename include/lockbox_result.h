@@ -1,7 +1,8 @@
 #ifndef LOCKBOX_RESULT_H
 #define LOCKBOX_RESULT_H
 
-enum set_password_result {
+enum set_password_result
+{
     PASSWORD_OK,
     ALREADY_LOCKED,
     ALREADY_UNLOCKED,
@@ -9,7 +10,8 @@ enum set_password_result {
     PASSWORD_INTERNAL_ERROR
 };
 
-enum set_settings_result {
+enum set_settings_result
+{
     SETTINGS_OK,
     LOCKED,
     SETTINGS_INTERNAL_ERROR
