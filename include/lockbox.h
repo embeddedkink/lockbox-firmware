@@ -9,19 +9,20 @@
 class Lockbox
 {
 private:
-    Lock* lock;
-    Memory* memory;
+    Lock *lock;
+    Memory *memory;
+
 public:
-    Lockbox(Lock* lock, Memory* memory);
-    set_password_result SetVaultLocked(const char* key);
-    set_password_result SetVaultUnlocked(const char* key);
-    set_settings_result SetBoxName(const char* name);
+    Lockbox(Lock *lock, Memory *memory);
+    set_password_result SetVaultLocked(const char *key);
+    set_password_result SetVaultUnlocked(const char *key);
+    set_settings_result SetBoxName(const char *name);
     set_settings_result SetServoOpenPosition(int position);
     set_settings_result SetServoClosedPosition(int position);
     bool FactoryReset();
     void ForceFactoryReset();
     bool GetVaultLocked();
-    bool GetSettings(DynamicJsonDocument* doc);
+    bool GetSettings(DynamicJsonDocument *doc);
 };
 
 #endif // LOCKBOX_H

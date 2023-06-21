@@ -6,10 +6,11 @@ class Memory
 {
 private:
     uint32_t GetAgnosticChipId();
-    bool LoadString(char* path, char* setting, char* value, int len);
-    int LoadInt(char* path, char* setting);
-    bool Save(char* path, char* setting, char* value);
-    bool Save(char* path, char* setting, int value);
+    bool LoadString(char const *path, char const *setting, char *value, int len);
+    int LoadInt(char const *path, char const *setting);
+    bool Save(char const *path, char const *setting, char const *value);
+    bool Save(char const *path, char const *setting, int value);
+
 public:
     Memory();
 
@@ -24,7 +25,7 @@ public:
     bool SetVaultLocked(const char *new_password);
     bool SetVaultUnlocked();
     bool GetVaultIsLocked();
-    void GetVaultPassword(char* password, int length);
+    void GetVaultPassword(char *password, int length);
 
     void Reset();
 };
