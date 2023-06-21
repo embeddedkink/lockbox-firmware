@@ -1,56 +1,67 @@
-#include "main.h"
-#include "config.h"
-#include "eeprom_state.h"
+#include <Arduino.h>
+#include <FS.h>
+#include <LittleFS.h>
+#include <WiFiClient.h>
 #include "api.h"
+#include "config.h"
+#include "lock.h"
+#include "lockbox.h"
+#include "memory.h"
 
-WiFiClient* client;
-DNSServer* dns;
-AsyncWebServer* api_server;
-AsyncWebServer* frontend_server;
-AsyncWiFiManager* wifiManager;
-Memory* memory;
-Lock* lock;
+#if defined(ESP8266)
+#include <ESP8266WiFi.h>
+#include "ESP8266mDNS.h"
+#elif defined(ESP32)
+#include <WiFi.h>
+#include "ESPmDNS.h"
+#endif
+#include <ESPAsyncWiFiManager.h>
+#include <ESPAsyncWebServer.h>
+
+WiFiClient *client;
+DNSServer *dns;
+AsyncWebServer *api_server;
+AsyncWebServer *frontend_server;
+AsyncWiFiManager *wifiManager;
+Memory *memory;
+Lock *lock;
+Lockbox *lockbox;
 
 String api_host;
 
-#include <FS.h>
-#include <LittleFS.h>
-
-String processor(const String& var)
+String processor(const String &var)
 {
-  if(var == "API_HOST")
-    return api_host;
-  return String();
+    if (var == "API_HOST")
+        return api_host;
+    return String();
 }
 
 void setup()
 {
     Serial.begin(9600);
-    delay(500);
+    delay(10);
 
-    #if defined(ESP8266)
+    if (!LittleFS.begin())
+    {
+        Serial.println("An Error has occurred while mounting LittleFS");
+    }
+
+#if defined(ESP8266)
     pinMode(D3, INPUT_PULLUP);
-    #endif
+#endif
 
     client = new WiFiClient;
     dns = new DNSServer;
     api_server = new AsyncWebServer(API_PORT);
-    frontend_server = new AsyncWebServer(80);
+    frontend_server = new AsyncWebServer(FRONTEND_PORT);
 
     memory = new Memory();
     lock = new Lock(PINSERVO, memory->GetOpenPosition(), memory->GetClosedPosition());
-    if (memory->GetVaultIsLocked())
-    {
-        lock->SetClosed();
-    }
-    else
-    {
-        lock->SetOpen();
-    }
+    lockbox = new Lockbox(lock, memory);
 
     WiFi.softAPdisconnect(true);
-    char box_name[EEPROM_MAX_NAME_LENGTH];
-    memory->GetName(box_name, EEPROM_MAX_NAME_LENGTH);
+    char box_name[MAX_NAME_LENGTH];
+    memory->GetName(box_name, MAX_NAME_LENGTH);
     wifiManager = new AsyncWiFiManager(frontend_server, dns);
     if (!wifiManager->autoConnect(box_name))
     {
@@ -64,14 +75,12 @@ void setup()
     api_host.concat(WiFi.localIP().toString());
     api_host.concat(":");
     api_host.concat(API_PORT);
-    
+
     // Wifi is connected, we can repurpose frontend server
     frontend_server->reset();
     frontend_server->begin();
-    if(!LittleFS.begin()){
-        Serial.println("An Error has occurred while mounting LittleFS");
-    }
-    frontend_server->serveStatic("/", LittleFS, "/").setTemplateProcessor(processor);;
+    frontend_server->serveStatic("/", LittleFS, "/www").setTemplateProcessor(processor);
+    ;
 
     MDNS.addService("ekilb", "tcp", API_PORT);
     if (!MDNS.begin(box_name))
@@ -82,21 +91,20 @@ void setup()
     {
         Serial.println("mDNS responder started");
     }
-
-    StartServer(); // api.h
+    StartServer(api_server, lockbox, wifiManager); // api.h
 }
 
 void loop()
 {
-    #if defined(ESP8266)
+#if defined(ESP8266)
     MDNS.update();
-    #endif
+#endif
 
-    #if defined(ESP8266)
+#if defined(ESP8266)
     if (!digitalRead(D3))
     {
         memory->SetVaultUnlocked();
         ESP.restart();
     }
-    #endif
+#endif
 }

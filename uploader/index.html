@@ -11,9 +11,11 @@
     <main class="container">
         <h1>EKI Lockbox installer</h1>
         <article>
-            <p>This installer uses the latest commit on main of <a href="https://github.com/embeddedkink/lockbox-firmware">the official firmware</a></p>
+            <p>This installer uses the latest commit on main of <a href="https://github.com/embeddedkink/lockbox-firmware">the official firmware.</a></p>
+            <p>Currently only esp8266 is supported. Connecting through a USB hub may cause issues.</p>
+            <p>Connect the ESP to this device while holding the flash button, release the button and then hit install below</p>
             <script type="module"
-                src="https://unpkg.com/esp-web-tools@3.4.2/dist/web/install-button.js?module"></script>
+                src="https://unpkg.com/esp-web-tools@8.0.6/dist/web/install-button.js?module"></script>
             <esp-web-install-button manifest="firmware/manifest.json">
                 <button slot="activate">Install</button>
                 <span slot="unsupported">Browser not supported</span>
