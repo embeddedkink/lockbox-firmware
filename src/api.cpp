@@ -49,6 +49,12 @@ void ActionLock(AsyncWebServerRequest *request)
             response->setCode(200);
             doc["result"] = "success";
         }
+        else if (result == ALREADY_LOCKED)
+        {
+            response->setCode(401);
+            doc["result"] = "error";
+            doc["error"] = "AlreadyLocked";
+        }
         else
         {
             response->setCode(500);
@@ -88,6 +94,12 @@ void ActionUnlock(AsyncWebServerRequest *request)
             response->setCode(401);
             doc["result"] = "error";
             doc["error"] = "WrongPassword";
+        }
+        else if (result == ALREADY_UNLOCKED)
+        {
+            response->setCode(400);
+            doc["result"] = "error";
+            doc["error"] = "AlreadyUnlocked";
         }
         else
         {
@@ -223,7 +235,9 @@ void ActionReset(AsyncWebServerRequest *request)
     response->addHeader("Access-Control-Allow-Origin", "*");
     DynamicJsonDocument doc(512);
 
-    if (api_lockbox->GetVaultLocked())
+    bool success = api_lockbox->FactoryReset();
+
+    if (!success)
     {
         response->setCode(401);
         doc["result"] = "error";
@@ -233,12 +247,12 @@ void ActionReset(AsyncWebServerRequest *request)
     }
     else
     {
-        api_lockbox->FactoryReset();
-        api_wifiManager->resetSettings();
         response->setCode(200);
         doc["result"] = "success";
         serializeJson(doc, *response);
         request->send(response);
+        
+        api_wifiManager->resetSettings();
         ESP.restart();
     }
 }

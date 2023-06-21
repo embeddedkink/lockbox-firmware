@@ -24,11 +24,15 @@ bool Memory::LoadString(char* path, char* setting, char* value, int len)
 {
     DynamicJsonDocument doc(1024);
     File file = LittleFS.open(path, "r");
+    if (file == 0)
+    {
+        return false;
+    }
     deserializeJson(doc, file);
     file.close();
 
     strncpy(value, doc[setting], len);
-    return true; // HACK
+    return true;
 }
 
 int Memory::LoadInt(char* path, char* setting)
@@ -44,30 +48,46 @@ bool Memory::Save(char* path, char* setting, char* value)
 {
     DynamicJsonDocument doc(1024);
     File file = LittleFS.open(path, "r");
+    if (file == 0)
+    {
+        return false;
+    }
     deserializeJson(doc, file);
     file.close();
 
     doc[setting] = value;
 
     file = LittleFS.open(path, "w");
+    if (file == 0)
+    {
+        return false;
+    }
     serializeJson(doc, file);
     file.close();
-    return true; // HACK
+    return true;
 }
 
 bool Memory::Save(char* path, char* setting, int value)
 {
     DynamicJsonDocument doc(1024);
     File file = LittleFS.open(path, "r");
+    if (file == 0)
+    {
+        return false;
+    }
     deserializeJson(doc, file);
     file.close();
 
     doc[setting] = value;
 
     file = LittleFS.open(path, "w");
+    if (file == 0)
+    {
+        return false;
+    }
     serializeJson(doc, file);
     file.close();
-    return true; // HACK
+    return true;
 }
 
 Memory::Memory()
@@ -88,10 +108,9 @@ bool Memory::SetName(const char *name)
     return Save("/settings.json", (char*)"name", (char*)name);
 }
 
-int Memory::GetName(char *name, int len)
+bool Memory::GetName(char *name, int len)
 {
-    LoadString("/settings.json", "name", name, len);
-    return 0; //HACK?
+    return LoadString("/settings.json", "name", name, len);
 }
 
 bool Memory::SetOpenPosition(int position)
@@ -145,4 +164,6 @@ void Memory::GetVaultPassword(char* password, int length)
 
 void Memory::Reset()
 {
+    Save("/settings.json", "name", "");
+    Save("/state.json", "password", "");
 }
