@@ -14,7 +14,7 @@ public:
     Memory();
 
     bool SetName(const char *name);
-    int GetName(char *name, int len);
+    bool GetName(char *name, int len);
 
     bool SetOpenPosition(int position);
     bool SetClosedPosition(int position);
