@@ -1,4 +1,14 @@
+<<<<<<< Updated upstream
 #define FIRMWARE_VERSION "20221031"
+=======
+// Version is set at build time in the pipeline
+#ifndef FIRMWARE_VERSION
+#define FIRMWARE_VERSION "ver:dev"
+#endif
+
+#define MAX_NAME_LENGTH 64
+#define MAX_PASSWORD_LENGTH 64
+>>>>>>> Stashed changes
 
 #define API_PORT 5000
 
