@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+
+<head>
+    <link rel="shortcut icon" href="#" />
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    <main class="container">
+        <h1>EKI Lockbox <span id="lockIndicator"></span></h1>
+        <article>
+            <h2>Vault mode</h2>
+            <section class="grid">
+                <div>
+                    <label for="generateKeyLength">Key length:</label>
+                    <input id="generateKeyLength" type="number" value=12 />
+                </div>
+                <button onclick="GenerateKey('generateKeyLength')">Generate</button>
+                <button onclick="DownloadKey()">Download</button>
+                <button onclick="ClearKey()">Clear</button>
+            </section>
+            <form id="passwordform" class="grid">
+                    <input id="lockformPassword" type="text" name="password" required autocomplete="off" placeholder="key"/>
+                    <button type="submit" formaction="/lock" id="lockbutton">Lock</button>
+                    <button type="submit" formaction="/unlock" id="unlockbutton">Unlock</button>
+            </form>
+        </article>
+        <article>
+            <h2>Box settings</h2>
+            <section>
+                <form id="settingsform" action="/settings">
+                    <span class="grid">
+                        <span>
+                            <label for="settingsformName">Name</label>
+                            <input id="settingsformName" type="text" name="name" autocomplete="off" />
+                        </span>
+                        <span>
+                            <label for="settingsformOpenPosition">Open</label>
+                            <input id="settingsformOpenPosition" type="number" name="servo_open_position"
+                                autocomplete="off" />
+                        </span>
+                        <span>
+                            <label for="settingsformClosedPosition">Closed</label>
+                            <input id="settingsformClosedPosition" type="number" name="servo_closed_position"
+                                autocomplete="off" />
+                        </span>
+                    </span>
+                    <button type="submit">Set</button>
+                </form>
+            </section>
+            <section>
+                <form id="resetform" action="/reset">
+                    <button class="outline" type="submit">Factory reset</button>
+                </form>
+            </section>
+            Fw: <span id="firmwareVersion">Not available</span>
+        </article>
+        <article>
+            <h2>Open source components</h2>
+            <p>
+                <a href="https://github.com/alanswx/ESPAsyncWiFiManager">ESPAsyncWiFiManger</a> (MIT)
+                <br>
+                <a href="https://github.com/me-no-dev/ESPAsyncWebServer">ESPAsyncWebServer</a> (LGPL v2.1)
+                <br>
+                <a href="https://github.com/madhephaestus/ESP32Servo">ESP32Servo</a> (LGPL v2.1)
+                <br>
+                <a href="https://github.com/bblanchon/ArduinoJson">ArduinoJson</a> (MIT)
+                <br>
+                <a href="https://picocss.com/">PicoCSS</a> (MIT)
+            </p>
+        </article>
+    </main>
+    <footer class="container">
+        Brought to you by Embedded Kink Industries
+    </footer>
+</body>
+<script src="lockbox.js"></script> 
+</html>

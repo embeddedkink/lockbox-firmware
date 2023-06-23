@@ -1,15 +1,17 @@
 #include <AsyncJson.h>
 #include <ArduinoJson.h>
+#include <ESPAsyncWiFiManager.h>
 #include "api.h"
-#include "config.h"
-#include "eeprom_state.h"
-#include "lock.h"
-#include "main.h"
-#include "memory.h"
+#include "lockbox.h"
+#include "lockbox_result.h"
 
+Lockbox *api_lockbox;
+AsyncWiFiManager *api_wifiManager;
 
-void StartServer()
+void StartServer(AsyncWebServer *api_server, Lockbox *lockbox, AsyncWiFiManager *wifiManager)
 {
+    api_lockbox = lockbox;
+    api_wifiManager = wifiManager;
     api_server->onNotFound(NotFound);
     api_server->on("/lock", HTTP_POST, ActionLock);
     api_server->on("/unlock", HTTP_POST, ActionUnlock);
@@ -37,39 +39,36 @@ void ActionLock(AsyncWebServerRequest *request)
     response->addHeader("Access-Control-Allow-Origin", "*");
     DynamicJsonDocument doc(512);
 
-    if (memory->GetVaultIsLocked())
+    String password;
+    if (request->hasParam("password", true))
     {
-        response->setCode(400);
-        doc["result"] = "error";
-        doc["error"] = "AlreadyLocked";
-    }
-    else
-    {
-        String password;
-        if (request->hasParam("password", true))
+        password = request->getParam("password", true)->value();
+        set_password_result result = api_lockbox->SetVaultLocked(password.c_str());
+        if (result == PASSWORD_OK)
         {
-            password = request->getParam("password", true)->value();
-            bool saved_lock = memory->SetVaultLocked(password.c_str());
-            if (saved_lock)
-            {
-                lock->SetClosed();
-                response->setCode(200);
-                doc["result"] = "success";
-            }
-            else
-            {
-                response->setCode(500);
-                doc["result"] = "error";
-                doc["error"] = "MemoryError";
-            }
+            response->setCode(200);
+            doc["result"] = "success";
+        }
+        else if (result == ALREADY_LOCKED)
+        {
+            response->setCode(401);
+            doc["result"] = "error";
+            doc["error"] = "AlreadyLocked";
         }
         else
         {
-            response->setCode(400);
+            response->setCode(500);
             doc["result"] = "error";
-            doc["error"] = "NoPassword";
+            doc["error"] = "UnexpectedError";
         }
     }
+    else
+    {
+        response->setCode(400);
+        doc["result"] = "error";
+        doc["error"] = "NoPassword";
+    }
+
     serializeJson(doc, *response);
     request->send(response);
 }
@@ -84,18 +83,29 @@ void ActionUnlock(AsyncWebServerRequest *request)
     if (request->hasParam("password", true))
     {
         password = request->getParam("password", true)->value();
-        bool saved_unlock = memory->SetVaultUnlocked(password.c_str());
-        if (saved_unlock)
+        set_password_result result = api_lockbox->SetVaultUnlocked(password.c_str());
+        if (result == PASSWORD_OK)
         {
-            lock->SetOpen();
             response->setCode(200);
             doc["result"] = "success";
+        }
+        else if (result == WRONG_PASSWORD)
+        {
+            response->setCode(401);
+            doc["result"] = "error";
+            doc["error"] = "WrongPassword";
+        }
+        else if (result == ALREADY_UNLOCKED)
+        {
+            response->setCode(400);
+            doc["result"] = "error";
+            doc["error"] = "AlreadyUnlocked";
         }
         else
         {
             response->setCode(500);
             doc["result"] = "error";
-            doc["error"] = "PasswordFailure";
+            doc["error"] = "UnexpectedError";
         }
     }
     else
@@ -116,13 +126,9 @@ void ActionSettingsGet(AsyncWebServerRequest *request)
     DynamicJsonDocument doc(512);
     response->setCode(200);
     doc["result"] = "succes";
-    doc["data"]["locked"] = memory->GetVaultIsLocked();
-    doc["data"]["servo_open_position"] = memory->GetOpenPosition();
-    doc["data"]["servo_closed_position"] = memory->GetClosedPosition();
-    doc["data"]["version"] = FIRMWARE_VERSION;
-    char name[EEPROM_MAX_NAME_LENGTH];
-    memory->GetName(name, EEPROM_MAX_NAME_LENGTH);
-    doc["data"]["name"] = name;
+    DynamicJsonDocument data(512);
+    api_lockbox->GetSettings(&data);
+    doc["data"] = data;
     serializeJson(doc, *response);
     request->send(response);
 }
@@ -134,84 +140,93 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
     DynamicJsonDocument doc(1024);
 
     bool setting_updated = false;
-    if (memory->GetVaultIsLocked())
+    bool setting_failed = false;
+    bool setting_not_allowed = false;
+
+    String name;
+    if (request->hasParam("name", true))
     {
-        response->setCode(400);
+        name = request->getParam("name", true)->value();
+        set_settings_result result = api_lockbox->SetBoxName(name.c_str());
+        if (result == SETTINGS_OK)
+        {
+            setting_updated = true;
+        }
+        else if (result == LOCKED)
+        {
+            setting_not_allowed = true;
+        }
+        else
+        {
+            setting_failed = true;
+        }
+    }
+
+    if (request->hasParam("servo_open_position", true))
+    {
+        int open_position = request->getParam("servo_open_position", true)->value().toInt();
+        set_settings_result result = api_lockbox->SetServoOpenPosition(open_position);
+        if (result == SETTINGS_OK)
+        {
+            setting_updated = true;
+        }
+        else if (result == LOCKED)
+        {
+            setting_not_allowed = true;
+        }
+        else
+        {
+            setting_failed = true;
+        }
+    }
+
+    if (request->hasParam("servo_closed_position", true))
+    {
+        int closed_position = request->getParam("servo_closed_position", true)->value().toInt();
+        set_settings_result result = api_lockbox->SetServoClosedPosition(closed_position);
+        if (result == SETTINGS_OK)
+        {
+            setting_updated = true;
+        }
+        else if (result == LOCKED)
+        {
+            setting_not_allowed = true;
+        }
+        else
+        {
+            setting_failed = true;
+        }
+    }
+
+    if (setting_failed)
+    {
+        response->setCode(500);
         doc["result"] = "error";
-        doc["error"] = "VaultLocked";
+        doc["error"] = "InternalError";
     }
     else
     {
-
-        String name;
-        if (request->hasParam("name", true))
+        if (setting_not_allowed)
         {
-            name = request->getParam("name", true)->value();
-            bool saved = memory->SetName(name.c_str());
-            if (saved)
-            {
-                response->setCode(200);
-                doc["result"] = "success";
-                setting_updated = true;
-            }
-            else
-            {
-                response->setCode(500);
-                doc["result"] = "error";
-                doc["error"] = "MemoryError";
-            }
-        }
-
-        if (request->hasParam("servo_open_position", true))
-        {
-            int open_position = request->getParam("servo_open_position", true)->value().toInt();
-            if (memory->SetOpenPosition(open_position))
-            {
-                response->setCode(200);
-                doc["result"] = "success";
-                setting_updated = true;
-            }
-            else
-            {
-                response->setCode(500);
-                doc["result"] = "error";
-                doc["error"] = "MemoryError";
-            }
-        }
-
-        if (request->hasParam("servo_closed_position", true))
-        {
-            int closed_position = request->getParam("servo_closed_position", true)->value().toInt();
-            if (memory->SetClosedPosition(closed_position))
-            {
-                response->setCode(200);
-                doc["result"] = "success";
-                setting_updated = true;
-            }
-            else
-            {
-                response->setCode(500);
-                doc["result"] = "error";
-                doc["error"] = "MemoryError";
-            }
-        }
-
-        if (!setting_updated)
-        {
-            response->setCode(400);
+            response->setCode(401);
             doc["result"] = "error";
-            doc["error"] = "NotSaved";
+            doc["error"] = "VaultLocked";
+        }
+        else if (setting_updated)
+        {
+            response->setCode(200);
+            doc["result"] = "success";
+        }
+        else
+        {
+            response->setCode(500);
+            doc["result"] = "error";
+            doc["error"] = "UnknownParameter";
         }
     }
 
     serializeJson(doc, *response);
     request->send(response);
-
-    // HACK
-    if (setting_updated)
-    {
-        ESP.restart();
-    }
 }
 
 void ActionReset(AsyncWebServerRequest *request)
@@ -220,9 +235,11 @@ void ActionReset(AsyncWebServerRequest *request)
     response->addHeader("Access-Control-Allow-Origin", "*");
     DynamicJsonDocument doc(512);
 
-    if (memory->GetVaultIsLocked())
+    bool success = api_lockbox->FactoryReset();
+
+    if (!success)
     {
-        response->setCode(400);
+        response->setCode(401);
         doc["result"] = "error";
         doc["error"] = "VaultLocked";
         serializeJson(doc, *response);
@@ -230,12 +247,12 @@ void ActionReset(AsyncWebServerRequest *request)
     }
     else
     {
-        memory->Reset();
-        wifiManager->resetSettings();
         response->setCode(200);
         doc["result"] = "success";
         serializeJson(doc, *response);
         request->send(response);
+
+        api_wifiManager->resetSettings();
         ESP.restart();
     }
 }

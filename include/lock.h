@@ -13,6 +13,7 @@ private:
     Servo servo;
     int open_position;
     int closed_position;
+
 public:
     Lock(int servo_pin, int open_position, int closed_position);
     void SetOpenPosition(int position);

@@ -12,6 +12,7 @@
 #define DEFAULT_SERVO_CLOSED_POSITION 0
 
 #define DEFAULT_BOX_NAME_PREFIX "eki_lockbox_"
+#define FRONTEND_PORT 80
 
 #if defined(ESP8266)
 #define PINSERVO D4
