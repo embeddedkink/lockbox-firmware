@@ -1,0 +1,1 @@
+echo "-DFIRMWARE_VERSION=$(date +"%Y%m%d")"

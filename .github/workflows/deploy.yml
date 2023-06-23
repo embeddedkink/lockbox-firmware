@@ -40,7 +40,7 @@ jobs:
         pip install --upgrade platformio
     - name: Build firmware
       working-directory: .
-      run: pio run -e nodemcuv2 -D "FIRMWARE_VERSION=$(date +%Y%m%d)"
+      run: pio run -e nodemcuv2
     - name: Build fs
       working-directory: .
       run: pio run -t buildfs -e nodemcuv2
