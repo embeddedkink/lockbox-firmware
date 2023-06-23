@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Version is set at build time in the pipeline
 #ifndef FIRMWARE_VERSION
 #define FIRMWARE_VERSION "ver:dev"
@@ -5,6 +6,9 @@
 
 #define MAX_NAME_LENGTH 64
 #define MAX_PASSWORD_LENGTH 64
+=======
+#define FIRMWARE_VERSION "20230604-dev"
+>>>>>>> cd37bea (ux changes, minor api changes)
 
 #define API_PORT 5000
 
