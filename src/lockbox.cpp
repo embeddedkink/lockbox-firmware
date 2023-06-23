@@ -5,6 +5,14 @@
 
 Lockbox::Lockbox(Lock *lock, Memory *memory) : lock(lock), memory(memory)
 {
+    if (this->memory->GetVaultIsLocked())
+    {
+        this->lock->SetClosed();
+    }
+    else
+    {
+        this->lock->SetOpen();
+    }
 }
 
 set_password_result Lockbox::SetVaultLocked(const char *key)
@@ -17,6 +25,7 @@ set_password_result Lockbox::SetVaultLocked(const char *key)
     {
         if (this->memory->SetVaultLocked(key))
         {
+            lock->SetClosed();
             return PASSWORD_OK;
         }
         else
@@ -39,6 +48,8 @@ set_password_result Lockbox::SetVaultUnlocked(const char *key)
         if (strcmp(key, stored_password) == 0)
         {
             this->memory->SetVaultUnlocked();
+            // TODO: check mem
+            this->lock->SetOpen();
             return PASSWORD_OK;
         }
         else
