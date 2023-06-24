@@ -77,10 +77,12 @@ void setup()
     api_host.concat(API_PORT);
 
     // Wifi is connected, we can repurpose frontend server
+    DefaultHeaders::Instance().addHeader("X-Content-Type-Options", "nosniff");
+    DefaultHeaders::Instance().addHeader("Content-Security-Policy", "default-src 'self'; style-src 'self' unpkg.com; script-src 'self';connect-src *;base-uri 'self';form-action 'self'");
+    DefaultHeaders::Instance().addHeader("Referrer-Policy", "no-referrer");
     frontend_server->reset();
     frontend_server->begin();
     frontend_server->serveStatic("/", LittleFS, "/www").setTemplateProcessor(processor);
-    ;
 
     MDNS.addService("ekilb", "tcp", API_PORT);
     if (!MDNS.begin(box_name))

@@ -17,9 +17,9 @@
                     <label for="generateKeyLength">Key length:</label>
                     <input id="generateKeyLength" type="number" value=12 />
                 </div>
-                <button onclick="GenerateKey('generateKeyLength')">Generate</button>
-                <button onclick="DownloadKey()">Download</button>
-                <button onclick="ClearKey()">Clear</button>
+                <button id="generateKeyButton">Generate</button>
+                <button id="downloadKeyButton">Download</button>
+                <button id="clearKeyButton">Clear</button>
             </section>
             <form id="passwordform" class="grid">
                     <input id="lockformPassword" type="text" name="password" required autocomplete="off" placeholder="key"/>

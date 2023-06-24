@@ -4,7 +4,14 @@ function Init() {
     SetFormBehaviour("passwordform");
     SetFormBehaviour("settingsform");
     SetFormBehaviour("resetform");
+    SetButtonListeners();
     UpdateBoxInfo();
+}
+
+function SetButtonListeners() {
+    document.getElementById("generateKeyButton").addEventListener("click", function() {GenerateKey('generateKeyLength');});
+    document.getElementById("downloadKeyButton").addEventListener("click", function() {DownloadKey();});
+    document.getElementById("clearKeyButton").addEventListener("click", function() {ClearKey();});
 }
 
 function SetFormBehaviour(formID) {
