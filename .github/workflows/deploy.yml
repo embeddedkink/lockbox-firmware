@@ -40,7 +40,7 @@ jobs:
         pip install --upgrade platformio
     - name: Build firmware
       working-directory: .
-      run: pio run -e nodemcuv2
+      run: pio run -e nodemcuv2_release
     - name: Build fs
       working-directory: .
       run: pio run -t buildfs -e nodemcuv2_release
@@ -48,8 +48,8 @@ jobs:
     - name: Rename and move bins
       run: |
         mkdir bins
-        mv .pio/build/nodemcuv2/firmware.bin bins/nodemcuv2-fw.bin
-        mv .pio/build/nodemcuv2/littlefs.bin bins/nodemcuv2-fs.bin
+        mv .pio/build/nodemcuv2_release/firmware.bin bins/nodemcuv2-fw.bin
+        mv .pio/build/nodemcuv2_release/littlefs.bin bins/nodemcuv2-fs.bin
     - name: copy bins
       run: |
         cp bins/*.bin ./uploader/firmware
