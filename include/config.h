@@ -1,6 +1,6 @@
 // Version is set at build time in the pipeline
 #ifndef FIRMWARE_VERSION
-#define FIRMWARE_VERSION "ver:dev"
+#define FIRMWARE_VERSION "undefined"
 #endif
 
 #define MAX_NAME_LENGTH 64

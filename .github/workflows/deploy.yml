@@ -43,7 +43,7 @@ jobs:
       run: pio run -e nodemcuv2
     - name: Build fs
       working-directory: .
-      run: pio run -t buildfs -e nodemcuv2
+      run: pio run -t buildfs -e nodemcuv2_release
 
     - name: Rename and move bins
       run: |
