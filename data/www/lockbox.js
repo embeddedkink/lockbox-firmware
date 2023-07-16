@@ -1,6 +1,7 @@
 window.onload = Init;
 
 function Init() {
+    UpdateAPI();
     SetFormBehaviour("passwordform");
     SetFormBehaviour("settingsform");
     SetFormBehaviour("resetform");
@@ -37,7 +38,8 @@ function SetFormBehaviour(formID) {
 function Post(form, endpoint) {
     var data = new FormData(form);
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "%API_HOST%".concat(endpoint));
+    var remote = document.getElementById("remoteAPI").value.concat(endpoint);
+    xhr.open("POST", remote);
     xhr.timeout = 5000;
     xhr.onload = function () {
         console.log(this.response);
@@ -122,7 +124,8 @@ function DisplayBoxUnreachable()
 
 function UpdateBoxInfo() {
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", "%API_HOST%".concat("/settings"));
+    var remote = document.getElementById("remoteAPI").value.concat("/settings");
+    xhr.open("GET", remote);
     xhr.timeout = 5000;
     xhr.onload = function () {
         var response = JSON.parse(this.response)

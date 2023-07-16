@@ -22,9 +22,10 @@
                 <button id="clearKeyButton">Clear</button>
             </section>
             <form id="passwordform" class="grid">
-                    <input id="lockformPassword" type="text" name="password" required autocomplete="off" placeholder="key"/>
-                    <button type="submit" formaction="/lock" id="lockbutton">Lock</button>
-                    <button type="submit" formaction="/unlock" id="unlockbutton">Unlock</button>
+                <input id="lockformPassword" type="text" name="password" required autocomplete="off"
+                    placeholder="key" />
+                <button type="submit" formaction="/lock" id="lockbutton">Lock</button>
+                <button type="submit" formaction="/unlock" id="unlockbutton">Unlock</button>
             </form>
         </article>
         <article>
@@ -58,6 +59,15 @@
             Fw: <span id="firmwareVersion">Not available</span>
         </article>
         <article>
+            <h2>
+                API
+            </h2>
+            <section>
+                You shouldn't need to change this, but you can. This value is not stored in the box.
+            </section>
+            <input id="remoteAPI"></input>
+        </article>
+        <article>
             <h2>Open source components</h2>
             <p>
                 <a href="https://github.com/alanswx/ESPAsyncWiFiManager">ESPAsyncWiFiManger</a> (MIT)
@@ -76,5 +86,6 @@
         Brought to you by Embedded Kink Industries
     </footer>
 </body>
-<script src="lockbox.js"></script> 
+<script src="templates/setapi.js"></script>
+<script src="lockbox.js"></script>
 </html>

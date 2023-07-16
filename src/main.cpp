@@ -82,7 +82,8 @@ void setup()
     DefaultHeaders::Instance().addHeader("Referrer-Policy", "no-referrer");
     frontend_server->reset();
     frontend_server->begin();
-    frontend_server->serveStatic("/", LittleFS, "/www").setTemplateProcessor(processor);
+    frontend_server->serveStatic("/", LittleFS, "/www");
+    frontend_server->serveStatic("/templates", LittleFS, "/templates").setTemplateProcessor(processor);
 
     MDNS.addService("ekilb", "tcp", API_PORT);
     if (!MDNS.begin(box_name))
