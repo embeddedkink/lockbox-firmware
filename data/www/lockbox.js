@@ -90,6 +90,10 @@ function Post(form, endpoint) {
 
 function DownloadKey() {
     var key = document.getElementById("lockformPassword").value;
+    if (key.length > 64) {
+        alert("the key is too long (max 64 characters)");
+        return;
+    }
     var element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(key));
     element.setAttribute('download', "key.txt");
@@ -101,6 +105,10 @@ function DownloadKey() {
 
 function GenerateKey(formInput) {
     size = document.getElementById(formInput).value;
+    if (size > 64) {
+        alert("the key is too long (max 64 characters)");
+        return;
+    }
     var result = '';
     var characters = 'abcdefghkmnpqrstuvwxy3456789';
     var charactersLength = characters.length;

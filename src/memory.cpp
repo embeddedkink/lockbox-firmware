@@ -145,8 +145,8 @@ bool Memory::SetVaultUnlocked()
 
 bool Memory::GetVaultIsLocked()
 {
-    char password[MAX_PASSWORD_LENGTH];
-    LoadString("/state.json", "password", password, MAX_PASSWORD_LENGTH);
+    char password[MAX_PASSWORD_LENGTH + 1];
+    LoadString("/state.json", "password", password, MAX_PASSWORD_LENGTH + 1);
     if (strlen(password) == 0)
     {
         return false;

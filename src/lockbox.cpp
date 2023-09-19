@@ -23,7 +23,7 @@ set_password_result Lockbox::SetVaultLocked(const char *key)
     }
     else
     {
-        if (this->memory->SetVaultLocked(key))
+        if (strlen(key) <= MAX_PASSWORD_LENGTH && this->memory->SetVaultLocked(key))
         {
             lock->SetClosed();
             return PASSWORD_OK;
@@ -43,8 +43,8 @@ set_password_result Lockbox::SetVaultUnlocked(const char *key)
     }
     else
     {
-        char stored_password[64];
-        this->memory->GetVaultPassword(stored_password, 64);
+        char stored_password[MAX_PASSWORD_LENGTH + 1];
+        this->memory->GetVaultPassword(stored_password, MAX_PASSWORD_LENGTH + 1);
         if (strcmp(key, stored_password) == 0)
         {
             this->memory->SetVaultUnlocked();
