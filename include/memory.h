@@ -27,5 +27,15 @@ public:
     bool GetVaultIsLocked();
     void GetVaultPassword(char *password, int length);
 
+    bool SetVaultEmlalocked(const char *new_password);
+    bool SetVaultUnemlalocked();
+    bool GetVaultIsEmlalocked();
+    bool SetEmlalockApiUser(const char *api_user);
+    bool SetEmlalockApiKey(const char *api_key);
+    bool SetEmlalockSessionid(const char *sessionid);
+    bool GetEmlalockApiUser(char *api_user, int len);
+    bool GetEmlalockApiKey(char *api_key, int len);
+    bool GetEmlalockSessionid(char *sessionid, int len);
+
     void Reset();
 };

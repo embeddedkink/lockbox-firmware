@@ -142,12 +142,11 @@ function UpdateBoxInfo() {
         document.getElementById("settingsformName").value = response["data"]["name"];
         document.getElementById("settingsformOpenPosition").value = response["data"]["servo_open_position"];
         document.getElementById("settingsformClosedPosition").value = response["data"]["servo_closed_position"];
-        if (response["data"]["locked"]) {
-            document.getElementById("lockIndicator").innerHTML = "&#128274";
-        }
-        else {
-            document.getElementById("lockIndicator").innerHTML = "&#128275";
-        }
+        document.getElementById("settingsformEmlalockApiUser").value = response["data"]["emlalock_api_user"];
+        document.getElementById("settingsformEmlalockApiKey").value = response["data"]["emlalock_api_key"];
+        document.getElementById("lockIndicator").innerHTML = response["data"]["locked"] ? "&#128274" : "&#128275";
+        document.getElementById("lockIndicator").innerHTML += response["data"]["incleaning"] ? "&#128703" : "";
+        document.getElementById("emlalockIndicator").style.display = response["data"]["emlalocked"] ? "" : "none";
     };
     xhr.ontimeout = function () {
         DisplayBoxUnreachable();
