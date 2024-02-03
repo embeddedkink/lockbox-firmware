@@ -198,6 +198,42 @@ void ActionSettingsPost(AsyncWebServerRequest *request)
         }
     }
 
+    if (request->hasParam("emlalock_api_user", true))
+    {
+        String emlalock_api_user = request->getParam("emlalock_api_user", true)->value();
+        set_settings_result result = api_lockbox->SetEmlalockApiUser(emlalock_api_user.c_str());
+        if (result == SETTINGS_OK)
+        {
+            setting_updated = true;
+        }
+        else if (result == LOCKED)
+        {
+            setting_not_allowed = true;
+        }
+        else
+        {
+            setting_failed = true;
+        }
+    }
+
+    if (request->hasParam("emlalock_api_key", true))
+    {
+        String emlalock_api_key = request->getParam("emlalock_api_key", true)->value();
+        set_settings_result result = api_lockbox->SetEmlalockApiKey(emlalock_api_key.c_str());
+        if (result == SETTINGS_OK)
+        {
+            setting_updated = true;
+        }
+        else if (result == LOCKED)
+        {
+            setting_not_allowed = true;
+        }
+        else
+        {
+            setting_failed = true;
+        }
+    }
+
     if (setting_failed)
     {
         response->setCode(500);

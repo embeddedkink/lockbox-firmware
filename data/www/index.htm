@@ -9,13 +9,13 @@
 
 <body>
     <main class="container">
-        <h1>EKI Lockbox <span id="lockIndicator"></span></h1>
+        <h1>EKI Lockbox <span id="lockIndicator"></span><img id="emlalockIndicator" src="emlalock.png" /></h1>
         <article>
             <h2>Vault mode</h2>
             <section class="grid">
                 <div>
                     <label for="generateKeyLength">Key length:</label>
-                    <input id="generateKeyLength" type="number" value=12 />
+                    <input id="generateKeyLength" type="number" value=12 min=3 max=64 />
                 </div>
                 <button id="generateKeyButton">Generate</button>
                 <button id="downloadKeyButton">Download</button>
@@ -44,8 +44,15 @@
                         </span>
                         <span>
                             <label for="settingsformClosedPosition">Closed</label>
-                            <input id="settingsformClosedPosition" type="number" name="servo_closed_position"
-                                autocomplete="off" />
+                            <input id="settingsformClosedPosition" type="number" name="servo_closed_position" autocomplete="off" />
+                        </span>
+                        <span>
+                            <label for="settingsformEmlalockApiUser">Emlalock API User ID</label>
+                            <input id="settingsformEmlalockApiUser" type="text" name="emlalock_api_user" autocomplete="off" />
+                        </span>
+                        <span>
+                            <label for="settingsformEmlalockApiKey">Emlalock API Key</label>
+                            <input id="settingsformEmlalockApiKey" type="text" name="emlalock_api_key" autocomplete="off" />
                         </span>
                     </span>
                     <button type="submit">Set</button>

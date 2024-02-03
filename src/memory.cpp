@@ -145,16 +145,30 @@ bool Memory::SetVaultUnlocked()
 
 bool Memory::GetVaultIsLocked()
 {
-    char password[MAX_PASSWORD_LENGTH];
-    LoadString("/state.json", "password", password, MAX_PASSWORD_LENGTH);
+    char password[MAX_PASSWORD_LENGTH + 1];
+    LoadString("/state.json", "password", password, sizeof(password));
     if (strlen(password) == 0)
-    {
         return false;
-    }
-    else
-    {
-        return true;
-    }
+    return true;
+}
+
+bool Memory::SetVaultEmlalocked(const char *new_password)
+{
+    return Save("/state.json", "emlalock_sessionid", new_password);
+}
+
+bool Memory::SetVaultUnemlalocked()
+{
+    return Save("/state.json", "emlalock_sessionid", "");
+}
+
+bool Memory::GetVaultIsEmlalocked()
+{
+    char sessionid[32];
+    LoadString("/state.json", "emlalock_sessionid", sessionid, sizeof(sessionid));
+    if (strlen(sessionid) == 0)
+        return false;
+    return true;
 }
 
 void Memory::GetVaultPassword(char *password, int length)
@@ -162,8 +176,41 @@ void Memory::GetVaultPassword(char *password, int length)
     LoadString("/state.json", "password", password, length);
 }
 
+bool Memory::SetEmlalockApiUser(const char *api_user)
+{
+    return Save("/settings.json", "emlalock_api_user", api_user);
+}
+
+bool Memory::SetEmlalockApiKey(const char *api_key)
+{
+    return Save("/settings.json", "emlalock_api_key", api_key);
+}
+
+bool Memory::SetEmlalockSessionid(const char *sessionid)
+{
+    return Save("/state.json", "emlalock_sessionid", sessionid);
+}
+
+bool Memory::GetEmlalockApiUser(char *api_user, int len)
+{
+    return LoadString("/settings.json", "emlalock_api_user", api_user, len);
+}
+
+bool Memory::GetEmlalockApiKey(char *api_key, int len)
+{
+    return LoadString("/settings.json", "emlalock_api_key", api_key, len);
+}
+
+bool Memory::GetEmlalockSessionid(char *sessionid, int len)
+{
+    return LoadString("/state.json", "emlalock_sessionid", sessionid, len);
+}
+
 void Memory::Reset()
 {
     Save("/settings.json", "name", "");
+    Save("/settings.json", "emlalock_api_user", "");
+    Save("/settings.json", "emlalock_api_key", "");
     Save("/state.json", "password", "");
+    Save("/state.json", "emlalock_sessionid", "");
 }

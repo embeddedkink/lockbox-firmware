@@ -90,6 +90,10 @@ function Post(form, endpoint) {
 
 function DownloadKey() {
     var key = document.getElementById("lockformPassword").value;
+    if (key.length > 64) {
+        alert("the key is too long (max 64 characters)");
+        return;
+    }
     var element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(key));
     element.setAttribute('download', "key.txt");
@@ -101,6 +105,10 @@ function DownloadKey() {
 
 function GenerateKey(formInput) {
     size = document.getElementById(formInput).value;
+    if (size > 64) {
+        alert("the key is too long (max 64 characters)");
+        return;
+    }
     var result = '';
     var characters = 'abcdefghkmnpqrstuvwxy3456789';
     var charactersLength = characters.length;
@@ -134,12 +142,11 @@ function UpdateBoxInfo() {
         document.getElementById("settingsformName").value = response["data"]["name"];
         document.getElementById("settingsformOpenPosition").value = response["data"]["servo_open_position"];
         document.getElementById("settingsformClosedPosition").value = response["data"]["servo_closed_position"];
-        if (response["data"]["locked"]) {
-            document.getElementById("lockIndicator").innerHTML = "&#128274";
-        }
-        else {
-            document.getElementById("lockIndicator").innerHTML = "&#128275";
-        }
+        document.getElementById("settingsformEmlalockApiUser").value = response["data"]["emlalock_api_user"];
+        document.getElementById("settingsformEmlalockApiKey").value = response["data"]["emlalock_api_key"];
+        document.getElementById("lockIndicator").innerHTML = response["data"]["locked"] ? "&#128274" : "&#128275";
+        document.getElementById("lockIndicator").innerHTML += response["data"]["incleaning"] ? "&#128703" : "";
+        document.getElementById("emlalockIndicator").style.display = response["data"]["emlalocked"] ? "" : "none";
     };
     xhr.ontimeout = function () {
         DisplayBoxUnreachable();

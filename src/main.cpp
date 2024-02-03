@@ -1,7 +1,12 @@
 #include <Arduino.h>
+#include <AsyncJson.h>
+#include <ESPAsyncWebServer.h>
+#include <ESPAsyncWiFiManager.h>
 #include <FS.h>
+#include <HTTPClient.h>
 #include <LittleFS.h>
-#include <WiFiClient.h>
+#include <WiFiClientSecure.h>
+
 #include "api.h"
 #include "config.h"
 #include "lock.h"
@@ -15,10 +20,9 @@
 #include <WiFi.h>
 #include "ESPmDNS.h"
 #endif
-#include <ESPAsyncWiFiManager.h>
-#include <ESPAsyncWebServer.h>
 
-WiFiClient *client;
+WiFiClientSecure *client;
+HTTPClient https;
 DNSServer *dns;
 AsyncWebServer *api_server;
 AsyncWebServer *frontend_server;
@@ -28,12 +32,58 @@ Lock *lock;
 Lockbox *lockbox;
 
 String api_host;
+static unsigned long last_time = 0;
 
 String processor(const String &var)
 {
     if (var == "API_HOST")
         return api_host;
     return String();
+}
+
+void check_emlalock_session()
+{
+    char api_user[32];
+    char api_key[32];
+    char url[100];
+    DynamicJsonDocument info(6144);
+
+    memory->GetEmlalockApiUser(api_user, sizeof(api_user));
+    memory->GetEmlalockApiKey(api_key, sizeof(api_user));
+    sprintf(url, "https://api.emlalock.com/info?userid=%s&apikey=%s", api_user, api_key);
+
+    https.useHTTP10(true);
+    https.begin(*client, url);
+    https.GET();
+    deserializeJson(info, https.getStream());
+    https.end();
+
+    const char *error = info["error"];
+    if (error != NULL)
+    {
+        Serial.println(error);
+        return;
+    }
+
+    bool is_emlalocked = lockbox->GetVaultEmlalocked();
+    const char *chastitysessionid = info["chastitysession"]["chastitysessionid"];
+
+    if (is_emlalocked && chastitysessionid == NULL)
+    {
+        /* no Emlalock session detected, but the vault is emlalocked.
+           Unemlalock the vault. */
+        lockbox->SetVaultUnemlalocked();
+    }
+    else if (!is_emlalocked && chastitysessionid != NULL)
+    {
+        /* sessionid isn't yet stored, time to lock up */
+        lockbox->SetVaultEmlalocked(chastitysessionid);
+    }
+    else if (is_emlalocked && chastitysessionid != NULL)
+    {
+        /* vault is emlalocked, check if we are in a cleaningopening */
+        lockbox->SetVaultEmlalockIncleaning(info["chastitysession"]["incleaning"]);
+    }
 }
 
 void setup()
@@ -50,7 +100,8 @@ void setup()
     pinMode(D3, INPUT_PULLUP);
 #endif
 
-    client = new WiFiClient;
+    client = new WiFiClientSecure;
+    client->setInsecure();
     dns = new DNSServer;
     api_server = new AsyncWebServer(API_PORT);
     frontend_server = new AsyncWebServer(FRONTEND_PORT);
@@ -105,9 +156,17 @@ void loop()
 
 #if defined(ESP8266)
     if (!digitalRead(D3))
+#elif defined(ESP32)
+    if (!digitalRead(0))
+#endif
     {
         memory->SetVaultUnlocked();
         ESP.restart();
     }
-#endif
+
+    if (last_time + 5000 < millis())
+    {
+        last_time = millis();
+        check_emlalock_session();
+    }
 }
